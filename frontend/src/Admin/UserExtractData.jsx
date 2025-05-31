@@ -1,6 +1,8 @@
 import { useParams } from "react-router-dom";
 import * as XLSX from 'xlsx';
 import { useState } from "react";
+import axios from "axios";
+import { HOST } from "../utils/constants";
 
 const UserExtractData = () => {
     const { employeeId } = useParams();
@@ -9,21 +11,23 @@ const UserExtractData = () => {
     const handleExtractData = async () => {
         setLoading(true);
         try {
-            const response = await fetch(`/api/attendance/employee/${employeeId}`, {
-                method: "GET",
-                headers: { "Content-Type": "application/json" },
+            const response = await axios.get(`${HOST}/api/attendance/employee/${employeeId}`, {
+                withCredentials: true,  // Enable cookie handling
+                headers: {
+                    'Content-Type': 'application/json'
+                }
             });
-
-            const data = await response.json();
-            if (!response.ok) throw new Error(data.error || "Failed to fetch attendance data.");
-
+            const data = response.data;
+            console.log("Extracted Data:", data);
             const workbook = XLSX.utils.book_new();
             const worksheet = XLSX.utils.json_to_sheet(data.attendance);
-            XLSX.utils.book_append_sheet(workbook, worksheet, data.name); // Use employee name as sheet name
+            XLSX.utils.book_append_sheet(workbook, worksheet, data.name);
 
-            XLSX.writeFile(workbook, `${data.name}.xlsx`); // Save file with employee name
+            XLSX.writeFile(workbook, `${data.name}.xlsx`);
         } catch (error) {
-            console.error('Error extracting data:', error);
+            console.error('Error extracting data:', 
+                error.response?.data?.error || error.message
+            );
         } finally {
             setLoading(false);
         }

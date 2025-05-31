@@ -1,4 +1,6 @@
 import { useState, useEffect } from "react";
+import axios from "axios";
+import { HOST } from "../utils/constants";
 
 const History = () => {
   const [attendance, setAttendance] = useState([]);
@@ -8,24 +10,14 @@ const History = () => {
   useEffect(() => {
     const fetchAttendance = async () => {
       try {
-        const response = await fetch("/api/user/history", {
-          method: "GET",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          credentials: "include",
+        const response = await axios.get(`${HOST}/api/user/history`, {
+          withCredentials: true
         });
-  
-        const data = await response.json();
-        console.log("API Response:", data); // Debugging line
-  
-        if (response.ok) {
-          setAttendance(data);
-        } else {
-          setError(data.error || "Failed to fetch attendance data.");
-        }
+        
+        console.log("API Response:", response.data); // Debugging line
+        setAttendance(response.data);
       } catch (error) {
-        setError(`Error fetching data: ${error.message}`);
+        setError(error.response?.data?.error || `Error fetching data: ${error.message}`);
       } finally {
         setLoading(false);
       }

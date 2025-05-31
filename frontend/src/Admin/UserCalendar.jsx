@@ -3,6 +3,8 @@ import Calendar from "react-calendar";
 import "react-calendar/dist/Calendar.css";
 import "../assets/stylesheets/calendar.css";
 import { useParams } from "react-router-dom";
+import axios from "axios";
+import { HOST } from "../utils/constants";
 
 const UserCalendar = () => {
   const [date, setDate] = useState(new Date());
@@ -12,26 +14,22 @@ const UserCalendar = () => {
   useEffect(() => {
     const fetchAttendance = async () => {
       try {
-        const response = await fetch(`/api/admin/attendance/${employeeId}`, {
-          method: "GET",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          credentials: "include",
+        const response = await axios.get(`${HOST}/api/attendance/admin/${employeeId}`, {
+            withCredentials: true,  // Enable sending cookies
+            headers: {
+                'Content-Type': 'application/json'
+            }
         });
-
-        if (!response.ok) {
-          throw new Error(`Error: ${response.statusText}`);
-        }
-
-        const data = await response.json();
-        console.log("Fetched Attendance Data:", data);
+        console.log("Fetched Attendance Data:", response.data);
 
         const attendanceMap = {};
-        data.forEach((entry) => {
-          const formattedDate = new Date(entry.date).toLocaleDateString("en-GB", {
-            timeZone: "Asia/Kolkata",
-          });
+        response.data.forEach((entry) => {
+          const formattedDate = new Date(entry.date).toLocaleDateString(
+            "en-GB",
+            {
+              timeZone: "Asia/Kolkata",
+            }
+          );
           attendanceMap[formattedDate] = {
             status: entry.status,
             checkInTime: entry.check_in_time,
@@ -41,7 +39,10 @@ const UserCalendar = () => {
 
         setAttendance(attendanceMap);
       } catch (error) {
-        console.error("Error fetching attendance:", error.message);
+        console.error(
+          "Error fetching attendance:",
+          error.response?.data?.error || error.message
+        );
       }
     };
 
@@ -53,17 +54,26 @@ const UserCalendar = () => {
       onChange={setDate}
       value={date}
       tileClassName={({ date }) => {
-        const formattedDate = date.toLocaleDateString("en-GB", { timeZone: "Asia/Kolkata" });
+        const formattedDate = date.toLocaleDateString("en-GB", {
+          timeZone: "Asia/Kolkata",
+        });
         const attendanceDetails = attendance[formattedDate];
 
-        return attendanceDetails ? `status-${attendanceDetails.status.toLowerCase()}` : "";
+        return attendanceDetails
+          ? `status-${attendanceDetails.status.toLowerCase()}`
+          : "";
       }}
       tileContent={({ date }) => {
-        const formattedDate = date.toLocaleDateString("en-GB", { timeZone: "Asia/Kolkata" });
+        const formattedDate = date.toLocaleDateString("en-GB", {
+          timeZone: "Asia/Kolkata",
+        });
         const attendanceDetails = attendance[formattedDate];
 
         return attendanceDetails ? (
-          <div className={`attendance-dot dot-${attendanceDetails.status.toLowerCase()}`} title={`Status: ${attendanceDetails.status}\nCheck In Time: ${attendanceDetails.checkInTime}\nCheck Out Time: ${attendanceDetails.checkOutTime}`}></div>
+          <div
+            className={`attendance-dot dot-${attendanceDetails.status.toLowerCase()}`}
+            title={`Status: ${attendanceDetails.status}\nCheck In Time: ${attendanceDetails.checkInTime}\nCheck Out Time: ${attendanceDetails.checkOutTime}`}
+          ></div>
         ) : null;
       }}
     />

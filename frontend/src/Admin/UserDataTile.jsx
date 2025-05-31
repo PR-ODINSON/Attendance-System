@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import axios from "axios";
+import { HOST } from "../utils/constants";
 import { PieChart, Pie, Cell, Tooltip, Legend } from "recharts";
 import { useParams } from "react-router-dom";
 
@@ -16,7 +17,12 @@ const UserDataTile = () => {
     const fetchAttendance = async () => {
       try {
         if (!employeeId) return;
-        const response = await axios.get(`/api/admin/attendance/${employeeId}`);
+        const response = await axios.get(`${HOST}/api/attendance/admin/${employeeId}`, {
+            withCredentials: true,  // Enable sending cookies
+            headers: {
+                'Content-Type': 'application/json'
+            }
+        });
         const attendanceData = response.data;
 
         const summary = {

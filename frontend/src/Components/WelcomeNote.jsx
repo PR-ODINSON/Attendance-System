@@ -1,4 +1,5 @@
 import axios from "axios";
+import { HOST } from "../utils/constants";
 import { useEffect, useState } from "react";
 
 const WelcomeNote = () => {
@@ -7,7 +8,7 @@ const WelcomeNote = () => {
     useEffect(() => {
         const fetchData = async () => {
             try {
-                const response = await axios.get('/api/user/name');
+                const response = await axios.get(`${HOST}/api/user/name`);
                 setName(response.data.name);
             } catch (error) {
                 console.error('Error fetching name:', error);

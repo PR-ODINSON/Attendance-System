@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import axios from "axios";
+import { HOST } from "../utils/constants";
 import { PieChart, Pie, Cell, Tooltip, Legend } from "recharts";
 
 const DataTile = () => {
@@ -10,10 +11,18 @@ const DataTile = () => {
   });
   const [totalWorkingDays, setTotalWorkingDays] = useState(0);
 
+  const email = localStorage.getItem("email");
+
   useEffect(() => {
     const fetchAttendance = async () => {
       try {
-        const response = await axios.get("/api/user/attendance");
+        const response = await axios.get(`${HOST}/api/attendance/get-user-attendance`, {
+          params: { email },
+          withCredentials: true,
+          headers: {
+            'Content-Type': 'application/json'
+          }
+        });
         const attendanceData = response.data;
 
         const summary = {

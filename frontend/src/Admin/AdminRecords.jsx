@@ -1,6 +1,8 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import * as XLSX from 'xlsx';
+import * as XLSX from "xlsx";
+import axios from "axios";
+import { HOST } from "../utils/constants";
 
 const AdminRecords = () => {
   const [attendance, setAttendance] = useState([]);
@@ -8,7 +10,9 @@ const AdminRecords = () => {
   const [error, setError] = useState(null);
   const [searchType, setSearchType] = useState("employee_id");
   const [searchValue, setSearchValue] = useState("");
-  const [dateFilter, setDateFilter] = useState(new Date().toISOString().split("T")[0]); // Default to today
+  const [dateFilter, setDateFilter] = useState(
+    new Date().toISOString().split("T")[0]
+  ); // Default to today
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -18,20 +22,26 @@ const AdminRecords = () => {
   const fetchAttendance = async (filters = {}) => {
     setLoading(true);
     try {
-      const queryParams = new URLSearchParams({ date: dateFilter, ...filters }).toString();
-      const response = await fetch(`/api/attendance?${queryParams}`, {
-        method: "GET",
-        headers: { "Content-Type": "application/json" },
-      });
-
-      const data = await response.json();
-      if (response.ok) {
-        setAttendance(data);
-      } else {
-        setError(data.error || "Failed to fetch attendance data.");
-      }
+      const queryParams = new URLSearchParams({
+        date: dateFilter,
+        ...filters,
+      }).toString();
+      const response = await axios.get(
+        `${HOST}/api/attendance/get-filtered-attendance?${queryParams}`,
+        {
+          withCredentials: true, // Enable sending cookies
+          headers: {
+            "Content-Type": "application/json",
+          },
+        }
+      );
+      setAttendance(response.data);
     } catch (error) {
-      setError(`Error fetching data: ${error.message}`);
+      setError(
+        error.response?.data?.error ||
+          error.message ||
+          "Failed to fetch attendance data."
+      );
     } finally {
       setLoading(false);
     }
@@ -44,20 +54,20 @@ const AdminRecords = () => {
 
   const handleExtractData = async () => {
     try {
-      const response = await fetch(`/api/attendance/all`, {
-        method: "GET",
-        headers: { "Content-Type": "application/json" },
+      const response = await axios.get(`${HOST}/api/attendance/all`, {
+        withCredentials: true, // Enable cookie handling
+        headers: {
+          "Content-Type": "application/json",
+        },
       });
-
-      const data = await response.json();
-      if (!response.ok) throw new Error(data.error || "Failed to fetch attendance data.");
+      const data = response.data;
 
       const workbook = XLSX.utils.book_new();
 
       // Function to sanitize sheet names
       const sanitizeSheetName = (name) => {
-        return name.replace(/[:\\/?*[\]]/g, '_'); // Replace invalid characters with an underscore
-    };
+        return name.replace(/[:\\/?*[\]]/g, "_");
+      };
 
       // Create a sheet for each date
       for (const [dateKey, entries] of Object.entries(data)) {
@@ -66,17 +76,32 @@ const AdminRecords = () => {
         XLSX.utils.book_append_sheet(workbook, worksheet, sanitizedDateKey);
       }
 
-      XLSX.writeFile(workbook, 'AttendanceData.xlsx');
+      XLSX.writeFile(workbook, "AttendanceData.xlsx");
     } catch (error) {
-      console.error('Error extracting data:', error);
-      alert('Failed to extract data. Please try again.');
+      console.error("Error extracting data:", error);
+      alert("Failed to extract data. Please try again.");
     }
+  };
+
+  const formatDate = (dateString) => {
+    if (!dateString) return "—";
+    const date = new Date(dateString);
+    return date
+      .toLocaleDateString("en-GB", {
+        day: "2-digit",
+        month: "2-digit",
+        year: "numeric",
+      })
+      .split("/")
+      .join("-");
   };
 
   return (
     <div className="w-full flex justify-end items-start openSans">
       <div className="w-5/6 min-h-screen flex flex-col overflow-y-auto p-8">
-        <h2 className="text-3xl font-bold text-[#00416A] mb-4 montserrat">Attendance History</h2>
+        <h2 className="text-3xl font-bold text-[#00416A] mb-4 montserrat">
+          Attendance History
+        </h2>
 
         {/* Search and Filter Controls */}
         <div className="w-full flex flex-wrap justify-between items-center mb-4">
@@ -117,7 +142,13 @@ const AdminRecords = () => {
               Search
             </button>
 
-            <button type="button" className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-[#0064a2] hover:bg-[#00416A] focus:outline-none cursor-pointer" onClick={handleExtractData}>Extract data</button>
+            <button
+              type="button"
+              className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-[#0064a2] hover:bg-[#00416A] focus:outline-none cursor-pointer"
+              onClick={handleExtractData}
+            >
+              Extract data
+            </button>
           </div>
         </div>
 
@@ -145,24 +176,50 @@ const AdminRecords = () => {
               <tbody>
                 {attendance.length > 0 ? (
                   attendance.map((entry, index) => (
-                    <tr key={index} className="border-b border-b-gray-400 text-sm cursor-pointer hover:bg-gray-100"
-                      onClick={() => navigate(`/userDashboard/${entry.employee_id}`)}
+                    <tr
+                      key={index}
+                      className="border-b border-b-gray-400 text-sm cursor-pointer hover:bg-gray-100"
+                      onClick={() =>
+                        navigate(`/userDashboard/${entry.employee_id}`)
+                      }
                     >
                       <td className="py-3 px-4 text-center">
-                        <img src={entry.profilePhoto ? `/uploads/${entry.profilePhoto}` : "https://via.placeholder.com/100"}
-                          alt="Profile" className="w-8 h-8 rounded-full bg-cover text-center" />
+                        <img
+                          src={
+                            entry.profilePhoto
+                              ? `/uploads/${entry.profilePhoto}`
+                              : "https://via.placeholder.com/100"
+                          }
+                          alt="Profile"
+                          className="w-8 h-8 rounded-full bg-cover text-center"
+                        />
                       </td>
-                      <td className="py-3 px-4 text-center">{entry.employee_id}</td>
+                      <td className="py-3 px-4 text-center">
+                        {entry.employee_id}
+                      </td>
                       <td className="py-3 px-4 text-center">{entry.name}</td>
-                      <td className="py-3 px-4 text-center">{entry.department}</td>
-                      <td className="py-3 px-4 text-center">{entry.designation}</td>
-                      <td className="py-3 px-4 text-center">{entry.date}</td>
-                      <td className="py-3 px-4 text-center">{entry.check_in_time || "—"}</td>
-                      <td className="py-3 px-4 text-center">{entry.check_out_time || "—"}</td>
-                      <td className={`py-3 px-4 font-semibold text-center ${entry.status.toLowerCase() === "present" ? "text-green-600"
-                        : entry.status.toLowerCase() === "late" ? "text-yellow-600"
-                          : "text-red-600"
-                        }`}>
+                      <td className="py-3 px-4 text-center">
+                        {entry.department}
+                      </td>
+                      <td className="py-3 px-4 text-center">
+                        {entry.designation}
+                      </td>
+                      <td className="py-3 px-4 text-center">{formatDate(entry.date)}</td>
+                      <td className="py-3 px-4 text-center">
+                        {entry.check_in_time || "—"}
+                      </td>
+                      <td className="py-3 px-4 text-center">
+                        {entry.check_out_time || "—"}
+                      </td>
+                      <td
+                        className={`py-3 px-4 font-semibold text-center ${
+                          entry.status.toLowerCase() === "present"
+                            ? "text-green-600"
+                            : entry.status.toLowerCase() === "late"
+                            ? "text-yellow-600"
+                            : "text-red-600"
+                        }`}
+                      >
                         {entry.status}
                       </td>
                     </tr>

@@ -1,5 +1,7 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import axios from "axios";
+import { HOST } from "../utils/constants";
 
 const SignUp = () => {
     const [formData, setFormData] = useState({
@@ -52,27 +54,23 @@ const SignUp = () => {
         formDataToSend.append("employee_id", employee_id);
 
         try {
-            const response = await fetch("/register", {
-                method: "POST",
-                body: formDataToSend,
-            });
-
-            if (response.ok) {
-                const data = await response.json();
-                console.log(data.message);
-                if (data.designation.toLowerCase() === "admin") {
-                    navigate("/records");
-                } else {
-                    navigate("/dashboard");
+            const response = await axios.post(`${HOST}/api/auth/register`, formDataToSend, {
+                headers: {
+                    'Content-Type': 'multipart/form-data',
                 }
+            });
+            
+            const data = response.data;
+            console.log(data.message);
+            if (data.designation.toLowerCase() === "admin") {
+                navigate("/records");
             } else {
-                const errorData = await response.json();
-                console.error(errorData.message);
-                alert("Registration failed. Please try again.");
+                navigate("/dashboard");
             }
+            
         } catch (error) {
-            console.error("Error:", error);
-            alert("An error occurred. Please try again.");
+            console.error("Error:", error.response?.data?.message || error.message);
+            alert(error.response?.data?.message || "Registration failed. Please try again.");
         }
     };
 

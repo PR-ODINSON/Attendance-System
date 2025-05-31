@@ -247,7 +247,7 @@ from predict import AntiSpoofPredict
 from utility import parse_model_name
 # ------------------- Configuration -------------------
 UPLOADS_FOLDER = '../backend/uploads'
-API_URL = "http://localhost:3000/mark-attendance"
+API_URL = "http://localhost:3000/api/attendance/mark-attendance" #change the url here http://localhost:3000/api/attendance/mark-attendance
 THRESHOLD = 0.75  # Cosine similarity threshold
 CACHE_TIMEOUT = 10  # seconds before re-marking same person
 # -----------------------------------------------------
@@ -325,6 +325,7 @@ def mark_attendance(name, recognition_time, time_taken_seconds):
             # "time": timestamp,
             "recognition_time_seconds": time_taken_seconds
         })
+        print(response)
         if response.status_code == 200:
             print(f"✅ Marked attendance for {name} : {time_taken_seconds:.2f}s)")
             return True
@@ -347,7 +348,7 @@ def is_real_face(frame, box, anti_spoof):
     face_img_rgb = cv2.cvtColor(face_img_resized, cv2.COLOR_BGR2RGB)
     pil_image = Image.fromarray(face_img_rgb)
 
-    model_dir = "C:/PROJECTS/Attendance/flaskServer/Silent-Face-Anti-Spoofing/resources/anti_spoof_models/2.7_80x80_MiniFASNetV2.pth"
+    model_dir = "C:/Users/ayaan/OneDrive/Desktop/IITRAM/InSolare Project/New attendance git/flaskServer/Silent-Face-Anti-Spoofing/resources/anti_spoof_models/2.7_80x80_MiniFASNetV2.pth"
     # print(f"Model path: {model_dir}")  # Print to check what model path is being used
     prediction = anti_spoof.predict(pil_image, model_dir)
 

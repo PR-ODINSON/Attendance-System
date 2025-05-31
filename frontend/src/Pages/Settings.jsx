@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
+import { HOST } from "../utils/constants";
 
 const Settings = () => {
   const [name, setName] = useState("");
@@ -17,7 +18,7 @@ const Settings = () => {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const response = await axios.get('/api/user');
+        const response = await axios.get(`${HOST}/api/user`);
         const { name, employee_id, email, phone, department, designation, profilePhoto } = response.data;
         setName(name);
         setEmpID(employee_id);
@@ -42,7 +43,7 @@ const Settings = () => {
       updateData.newPassword = newPassword;
     }
 
-    axios.patch("/api/users/update", updateData)
+    axios.patch(`${HOST}/api/users/update`, updateData)
       .then(response => {
         alert("Changes saved successfully!");
         console.log("User details updated successfully:", response.data);
@@ -54,15 +55,31 @@ const Settings = () => {
   };
 
 
-  const handleLogout = () => {
-    axios.post('/logout')
-      .then(response => {
-        console.log("Logged out successfully:", response.data);
-        navigate('/');
-      })
-      .catch(error => {
-        console.error("Error logging out:", error);
-      });
+  const handleLogout = async () => {
+    try {
+      const response = await axios.post(
+        `${HOST}/api/auth/logout`,
+        {},
+        {
+          withCredentials: true,
+        }
+      );
+
+      if (response.status === 200) {
+        // Clear any client-side storage if needed
+        localStorage.clear();
+        sessionStorage.clear();
+
+        // Navigate to login page
+        navigate("/");
+      }
+    } catch (error) {
+      console.error(
+        "Error logging out:",
+        error.response?.data || error.message
+      );
+      alert("Failed to logout. Please try again.");
+    }
   };
 
   const extractNameFromImage = (imageName) => {
