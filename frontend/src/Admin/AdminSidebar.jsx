@@ -17,6 +17,9 @@ const AdminSidebar = () => {
                 <li onClick={() => handleLinkClick('records')} className={`p-2 cursor-pointer hover:bg-[#0064a2] rounded-md transition ${activeLink === 'records' ? 'active bg-[#0064a2]' : ''}`}>
                     <div>Records</div>
                 </li>
+                <li onClick={() => handleLinkClick('userManagement')} className={`p-2 cursor-pointer hover:bg-[#0064a2] rounded-md transition ${activeLink === 'userManagement' ? 'active bg-[#0064a2]' : ''}`}>
+                    <div>User Management</div>
+                </li>
                 <li onClick={() => handleLinkClick('adminSettings')} className={`p-2 cursor-pointer hover:bg-[#0064a2] rounded-md transition ${activeLink === 'adminSettings' ? 'active bg-[#0064a2]' : ''}`}>
                     <div>Settings</div>
                 </li>

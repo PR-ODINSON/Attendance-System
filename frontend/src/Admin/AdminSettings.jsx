@@ -1,9 +1,9 @@
 import { faPencil } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { useState, useEffect } from "react";
-import axios from 'axios';
+import axios from "axios";
 import { HOST } from "../utils/constants";
-import { useNavigate } from 'react-router-dom';
+import { useNavigate } from "react-router-dom";
 
 const AdminSettings = () => {
   const [name, setName] = useState("");
@@ -20,8 +20,22 @@ const AdminSettings = () => {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const response = await axios.get(`${HOST}/api/user`);
-        const { name, employee_id, email, phone, department, designation, profilePhoto } = response.data;
+        const response = await axios.get(`${HOST}/api/user/get-user-details`, {
+          withCredentials: true,
+          headers: {
+            "Content-Type": "application/json",
+          },
+        });
+        console.log("User details fetched successfully:", response.data.profilePhoto);
+        const {
+          name,
+          employee_id,
+          email,
+          phone,
+          department,
+          designation,
+          profilePhoto,
+        } = response.data;
         setName(name);
         setEmpID(employee_id);
         setEmail(email);
@@ -41,25 +55,25 @@ const AdminSettings = () => {
     const file = event.target.files[0];
 
     if (file) {
-        const formData = new FormData();
-        formData.append("profilePhoto", file);
+      const formData = new FormData();
+      formData.append("profilePhoto", file);
 
-        axios.post(`${HOST}/api/updateProfilePhoto`, formData, {
-            headers: {
-                "Content-Type": "multipart/form-data"
-            }
+      axios
+        .post(`${HOST}/api/updateProfilePhoto`, formData, {
+          withCredentials: true,
+          headers: {
+            "Content-Type": "multipart/form-data",
+          },
         })
-        .then(response => {
-            console.log("Profile picture updated successfully:", response.data);
-            alert("Profile picture updated successfully!");
+        .then((response) => {
+          alert("Profile picture updated successfully!");
         })
-        .catch(error => {
-            console.error("Error updating profile picture:", error);
-            alert("Failed to update profile picture.");
+        .catch((error) => {
+          console.error("Error updating profile picture:", error);
+          alert("Failed to update profile picture.");
         });
     }
-};
-
+  };
 
   const handleSaveChanges = () => {
     const updateData = { name, phone };
@@ -69,12 +83,18 @@ const AdminSettings = () => {
       updateData.newPassword = newPassword;
     }
 
-    axios.patch(`${HOST}/api/users/update`, updateData)
-      .then(response => {
+    axios
+      .patch(`${HOST}/api/user/update-details`, updateData, {
+        withCredentials: true,
+        headers: {
+          "Content-Type": "application/json",
+        },
+      })
+      .then((response) => {
         alert("Changes saved successfully!");
         console.log("User details updated successfully:", response.data);
       })
-      .catch(error => {
+      .catch((error) => {
         console.error("Error saving changes:", error);
         alert(error.response?.data?.error || "Failed to update user details.");
       });
@@ -110,30 +130,55 @@ const AdminSettings = () => {
   return (
     <div className="w-full flex justify-end items-start openSans">
       <div className="w-5/6 min-h-screen flex flex-col overflow-y-auto p-8">
-        <h2 className="text-3xl font-bold text-[#00416A] mb-4 montserrat">Settings</h2>
-        
+        <h2 className="text-3xl font-bold text-[#00416A] mb-4 montserrat">
+          Settings
+        </h2>
+
         <div className="flex gap-10 items-end w-full justify-between bg-[#daf1ff] rounded-2xl p-4 mb-10 shadow-lg">
           <div className="flex gap-10 items-center w-full justify-start">
             <div>
               <img
-                src={profilePic ? `/uploads/${profilePic}` : "https://via.placeholder.com/100"}
+                src={
+                  profilePic
+                    ? `/uploads/${profilePic}`
+                    : "https://via.placeholder.com/100"
+                }
                 alt="Profile"
                 className="w-28 h-28 rounded-full mb-2 shadow"
               />
               <div className="text-sm relative">
-                <FontAwesomeIcon icon={faPencil} className="bg-[#0064a2] hover:bg-[#00416A] p-2.5 rounded-full text-white absolute bottom-1 left-20 shadow-md hover:transition hover:scale-105 cursor-pointer" onClick={() => document.getElementById('profilePicInput').click()} />
-                <input id="profilePicInput" type="file" onChange={handleProfilePicChange} className="hidden" />
+                <FontAwesomeIcon
+                  icon={faPencil}
+                  className="bg-[#0064a2] hover:bg-[#00416A] p-2.5 rounded-full text-white absolute bottom-1 left-20 shadow-md hover:transition hover:scale-105 cursor-pointer"
+                  onClick={() =>
+                    document.getElementById("profilePicInput").click()
+                  }
+                />
+                <input
+                  id="profilePicInput"
+                  type="file"
+                  onChange={handleProfilePicChange}
+                  className="hidden"
+                />
               </div>
             </div>
             <div className="poppins">
-                <p className="text-3xl font-semibold">{name} <span className="text-xs italic font-light text-gray-500">{designation}</span></p>
-                <p className="text-sm font-light text-gray-500">{empID}</p>
-                <p className="text-sm font-light text-gray-500">{email}</p>
-                <p className="text-sm font-light text-gray-500">{phone}</p>
+              <p className="text-3xl font-semibold">
+                {name}{" "}
+                <span className="text-xs italic font-light text-gray-500">
+                  {designation}
+                </span>
+              </p>
+              <p className="text-sm font-light text-gray-500">{empID}</p>
+              <p className="text-sm font-light text-gray-500">{email}</p>
+              <p className="text-sm font-light text-gray-500">{phone}</p>
             </div>
           </div>
           <div className="w-[10vw] flex justify-end items-end">
-            <button className="bg-[#0064a2] hover:bg-[#00416A] hover:transition hover:scale-105 text-white font-medium py-2 px-4 rounded cursor-pointer" onClick={handleLogout}>
+            <button
+              className="bg-[#0064a2] hover:bg-[#00416A] hover:transition hover:scale-105 text-white font-medium py-2 px-4 rounded cursor-pointer"
+              onClick={handleLogout}
+            >
               Logout
             </button>
           </div>

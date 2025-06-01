@@ -39,9 +39,9 @@ const SignIn = () => {
         navigate("/dashboard");
       }
     } catch (error) {
-      console.error("Error:", error.response?.data?.message || error.message);
+      console.error("Error:", error.response?.data?.error);
       alert(
-        error.response?.data?.message || "An error occurred. Please try again."
+        error.response?.data?.error || "An error occurred. Please try again."
       );
     }
   };

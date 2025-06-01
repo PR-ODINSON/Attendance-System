@@ -57,14 +57,14 @@ export const registerUser = async (req, res) => {
         }
 
         // JWT
-        const token = jwt.sign({ email, employee_id, designation }, JWT_SECRET);
+        // const token = jwt.sign({ email, employee_id, designation }, JWT_SECRET);
         
-        res.cookie('token', token, {
-            httpOnly: true,
-            secure: process.env.NODE_ENV === 'production',
-            sameSite: 'strict',
-            maxAge: 24 * 60 * 60 * 1000 // 24 hours
-        });
+        // res.cookie('token', token, {
+        //     httpOnly: true,
+        //     secure: process.env.NODE_ENV === 'production',
+        //     sameSite: 'strict',
+        //     maxAge: 24 * 60 * 60 * 1000 // 24 hours
+        // });
 
         res.status(201).json({ message: "Registration Successful", designation, email });
 
@@ -100,15 +100,15 @@ export const loginUser = async (req, res) => {
             email: email
         });
 
-        if (!users || users.length === 0) {
-            return res.status(401).json({ error: "Invalid email or password" });
+        if (!users || users.data == null) {
+            return res.status(400).json({ error: "Invalid email or password!" });
         }
 
         const user = users.data[0];
 
         const isMatch = await bcrypt.compare(password, user.password);
         if (!isMatch) {
-            return res.status(401).json({ error: "Invalid email or password" });
+            return res.status(401).json({ error: "Invalid email or password!" });
         }
 
         const token = jwt.sign({ email: user.email, userid: user.id, designation: user.designation }, process.env.JWT_SECRET);
@@ -133,5 +133,37 @@ export const logoutUser = (req, res) => {
         res.status(200).json({ message: "Logged out successfully" });
     } catch (error) {
         res.status(500).json({ error: "Logout failed" });
+    }
+};
+
+export const verifySession = async (req, res) => {
+    try {
+        // Email will be available from the decoded token in req.user
+        const { email } = req.user;
+
+        // Get user details including designation
+        const users = await dbService.select("users", ["designation"], {
+            email: email
+        });
+
+        if (!users || !users.data || users.data.length === 0) {
+            return res.status(404).json({ 
+                tokenVerified: false,
+                error: "User not found" 
+            });
+        }
+
+        // Return verification status and user designation
+        res.status(200).json({
+            tokenVerified: true,
+            designation: users.data[0].designation
+        });
+
+    } catch (error) {
+        console.error("Session verification error:", error);
+        res.status(401).json({ 
+            tokenVerified: false,
+            error: "Invalid session" 
+        });
     }
 };

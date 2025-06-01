@@ -15,9 +15,19 @@ const NavBar = () => {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const response = await axios.get(`${HOST}/api/user/name`);
+        const response = await axios.get(`${HOST}/api/user/get-user-name`,{
+          withCredentials: true,
+          headers: {
+            "Content-Type": "multipart/form-data",
+          },
+        });
         setName(response.data.name);
-        const photoResponse = await axios.get(`${HOST}/api/user/profilePhoto`);
+        const photoResponse = await axios.get(`${HOST}/api/user/profilePhoto`, {
+          withCredentials: true,
+          headers: {
+            "Content-Type": "multipart/form-data",
+          },
+        });
         setProfilePhoto(photoResponse.data.profilePhoto);
       } catch (error) {
         console.error("Error fetching name or profile photo:", error);

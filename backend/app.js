@@ -10,7 +10,7 @@ import fs from "fs";
 
 // Import routes
 import authRoutes from "./routes/authRoutes.js";
-// import userRoutes from "./routes/userRoutes.js";
+import userRoutes from "./routes/userRoutes.js";
 import attendanceRoutes from "./routes/attendanceRoutes.js";
 import adminRoutes from "./routes/adminRoutes.js";
 
@@ -43,7 +43,7 @@ if (!fs.existsSync(uploadDir)) {
 
 // Routes
 app.use("/api/auth", authRoutes);
-// app.use("/api/user", userRoutes);
+app.use("/api/user", userRoutes);
 app.use("/api/attendance", attendanceRoutes);
 app.use("/api/admin", adminRoutes);
 
@@ -59,7 +59,3 @@ app.listen(PORT, () => console.log(`Server started on port ${PORT}`));
 
 export default app;
 
-
-// ToDO:
-// Remove the DB service from all controllers except authController.js
-// Make controller and routes for user profile

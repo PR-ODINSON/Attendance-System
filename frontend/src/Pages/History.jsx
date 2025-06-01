@@ -10,8 +10,11 @@ const History = () => {
   useEffect(() => {
     const fetchAttendance = async () => {
       try {
-        const response = await axios.get(`${HOST}/api/user/history`, {
-          withCredentials: true
+        const response = await axios.get(`${HOST}/api/user/get-user-attendance`, {
+          withCredentials: true,
+          headers: {
+            "Content-Type": "application/json",
+          },
         });
         
         console.log("API Response:", response.data); // Debugging line

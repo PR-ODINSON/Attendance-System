@@ -10,6 +10,7 @@ const AdminRecords = () => {
   const [error, setError] = useState(null);
   const [searchType, setSearchType] = useState("employee_id");
   const [searchValue, setSearchValue] = useState("");
+  const [cameraActive, setCameraActive] = useState(false);
   const [dateFilter, setDateFilter] = useState(
     new Date().toISOString().split("T")[0]
   ); // Default to today
@@ -96,6 +97,26 @@ const AdminRecords = () => {
       .join("-");
   };
 
+  const handleCamera = async () => {
+    if (cameraActive) {
+      setCameraActive(false);
+      return;
+    }
+    try {
+      const response = await axios.post(`${HOST}/api/admin/start-face-recognition`, {
+        withCredentials: true,
+        headers: {
+          "Content-Type": "application/json",
+        },
+      });
+      console.log(response);
+      setCameraActive(true);
+    } catch (error) {
+      console.error("Failed to start face recognition:", error);
+      alert("Could not start face recognition.");
+    }
+  };  
+
   return (
     <div className="w-full flex justify-end items-start openSans">
       <div className="w-5/6 min-h-screen flex flex-col overflow-y-auto p-8">
@@ -148,6 +169,14 @@ const AdminRecords = () => {
               onClick={handleExtractData}
             >
               Extract data
+            </button>
+
+            <button
+              type="button"
+              className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-[#0064a2] hover:bg-[#00416A] focus:outline-none cursor-pointer"
+              onClick={handleCamera}
+            >
+              {cameraActive ? 'Stop Camera' : 'Start Camera'}
             </button>
           </div>
         </div>

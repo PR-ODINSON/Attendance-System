@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
-import axios from 'axios';
-import { useNavigate } from 'react-router-dom';
+import axios from "axios";
+import { useNavigate } from "react-router-dom";
 import { HOST } from "../utils/constants";
 
 const Settings = () => {
@@ -18,8 +18,16 @@ const Settings = () => {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const response = await axios.get(`${HOST}/api/user`);
-        const { name, employee_id, email, phone, department, designation, profilePhoto } = response.data;
+        const response = await axios.get(`${HOST}/api/user/get-user-details`);
+        const {
+          name,
+          employee_id,
+          email,
+          phone,
+          department,
+          designation,
+          profilePhoto,
+        } = response.data;
         setName(name);
         setEmpID(employee_id);
         setEmail(email);
@@ -43,17 +51,22 @@ const Settings = () => {
       updateData.newPassword = newPassword;
     }
 
-    axios.patch(`${HOST}/api/users/update`, updateData)
-      .then(response => {
+    axios
+      .patch(`${HOST}/api/user/update-details`, updateData, {
+        withCredentials: true,
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
+      })
+      .then((response) => {
         alert("Changes saved successfully!");
         console.log("User details updated successfully:", response.data);
       })
-      .catch(error => {
+      .catch((error) => {
         console.error("Error saving changes:", error);
         alert(error.response?.data?.error || "Failed to update user details.");
       });
   };
-
 
   const handleLogout = async () => {
     try {
@@ -83,29 +96,47 @@ const Settings = () => {
   };
 
   const extractNameFromImage = (imageName) => {
-    if (!imageName) return '';
-    return imageName.split('_')[0];
+    if (!imageName) return "";
+    return imageName.split("_")[0];
   };
 
   return (
     <div className="w-full flex justify-end items-start">
       <div className="w-5/6 min-h-screen flex flex-col overflow-y-auto p-8">
-        <h2 className="text-3xl font-bold text-[#00416A] mb-4 montserrat">Settings</h2>
+        <h2 className="text-3xl font-bold text-[#00416A] mb-4 montserrat">
+          Settings
+        </h2>
 
         <div className="flex gap-10 items-end w-full justify-between bg-[#daf1ff] rounded-2xl p-4 mb-10 shadow-lg">
           <div className="flex gap-10 items-center w-full justify-start">
             <div>
-              {profilePic.length > 0 && <img src={`/uploads/${extractNameFromImage(profilePic[0])}/${profilePic[0]}`} alt="Profile" className="w-28 h-28 rounded-full mb-2 shadow" />}
+              {profilePic.length > 0 && (
+                <img
+                  src={`/uploads/${extractNameFromImage(profilePic[0])}/${
+                    profilePic[0]
+                  }`}
+                  alt="Profile"
+                  className="w-28 h-28 rounded-full mb-2 shadow"
+                />
+              )}
             </div>
             <div className="poppins">
-              <p className="text-3xl font-semibold">{name} <span className="text-xs italic font-light text-gray-500">{designation}</span></p>
+              <p className="text-3xl font-semibold">
+                {name}{" "}
+                <span className="text-xs italic font-light text-gray-500">
+                  {designation}
+                </span>
+              </p>
               <p className="text-sm font-light text-gray-500">{empID}</p>
               <p className="text-sm font-light text-gray-500">{email}</p>
               <p className="text-sm font-light text-gray-500">{phone}</p>
             </div>
           </div>
           <div className="w-[10vw] flex justify-end items-end">
-            <button className="bg-[#0064a2] hover:bg-[#00416A] hover:transition hover:scale-105 text-white font-medium py-2 px-4 rounded cursor-pointer" onClick={handleLogout}>
+            <button
+              className="bg-[#0064a2] hover:bg-[#00416A] hover:transition hover:scale-105 text-white font-medium py-2 px-4 rounded cursor-pointer"
+              onClick={handleLogout}
+            >
               Logout
             </button>
           </div>

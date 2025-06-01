@@ -327,12 +327,12 @@ def mark_attendance(name, recognition_time, time_taken_seconds):
         })
         print(response)
         if response.status_code == 200:
-            print(f"✅ Marked attendance for {name} : {time_taken_seconds:.2f}s)")
+            print(f"Marked attendance for {name} : {time_taken_seconds:.2f}s)")
             return True
         else:
-            print(f"⚠️ Failed to mark attendance for {name}: {response.status_code}")
+            print(f"Failed to mark attendance for {name}: {response.status_code}")
     except Exception as e:
-        print(f"❌ Error sending request for {name}: {e}")
+        print(f"Error sending request for {name}: {e}")
     return False
 
 def is_real_face(frame, box, anti_spoof):
@@ -365,7 +365,7 @@ cap = cv2.VideoCapture(0)
 marked_once = set()
 
 
-print("🎥 Starting camera. Press 'q' to quit.")
+print("Starting camera. Press 'q' to quit.")
 
 while cap.isOpened():
     ret, frame = cap.read()
@@ -406,4 +406,4 @@ while cap.isOpened():
 
 cap.release()
 cv2.destroyAllWindows()
-print("📸 Camera stopped.")
+print("Camera stopped.")

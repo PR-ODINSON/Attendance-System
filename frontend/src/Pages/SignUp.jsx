@@ -55,18 +55,18 @@ const SignUp = () => {
 
         try {
             const response = await axios.post(`${HOST}/api/auth/register`, formDataToSend, {
+                withCredentials: true,
                 headers: {
                     'Content-Type': 'multipart/form-data',
                 }
             });
             
             const data = response.data;
-            console.log(data.message);
-            if (data.designation.toLowerCase() === "admin") {
-                navigate("/records");
-            } else {
-                navigate("/dashboard");
-            }
+            setTimeout(() => {
+                alert(`Registration successful! Please Sign in to continue.`);
+            }, 1000);
+
+            navigate("/signin");
             
         } catch (error) {
             console.error("Error:", error.response?.data?.message || error.message);
