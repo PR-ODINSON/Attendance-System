@@ -26,7 +26,8 @@ const __dirname = dirname(__filename);
 // Middleware
 app.use(cors({
     origin: [process.env.ORIGIN],
-    methods: ["GET", "POST", "PUT", "PATCH", "DELETE"],
+    methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
+    allowedHeaders: ["Content-Type", "Authorization"],
     credentials: true
 }));
 app.use(express.json());

@@ -18,7 +18,12 @@ const Settings = () => {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const response = await axios.get(`${HOST}/api/user/get-user-details`);
+        const response = await axios.get(`${HOST}/api/user/get-user-details`, {
+          withCredentials: true,
+          headers: {
+            "Content-Type": "application/json",
+          },
+        });
         const {
           name,
           employee_id,
@@ -55,7 +60,7 @@ const Settings = () => {
       .patch(`${HOST}/api/user/update-details`, updateData, {
         withCredentials: true,
         headers: {
-          "Content-Type": "multipart/form-data",
+          "Content-Type": "application/json",
         },
       })
       .then((response) => {
