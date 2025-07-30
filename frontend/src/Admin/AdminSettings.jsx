@@ -51,29 +51,29 @@ const AdminSettings = () => {
     fetchData();
   }, []);
 
-  const handleProfilePicChange = (event) => {
-    const file = event.target.files[0];
+  // const handleProfilePicChange = (event) => { //For future embedding image change
+  //   const file = event.target.files[0];
 
-    if (file) {
-      const formData = new FormData();
-      formData.append("profilePhoto", file);
+  //   if (file) {
+  //     const formData = new FormData();
+  //     formData.append("profilePhoto", file);
 
-      axios
-        .post(`${HOST}/api/updateProfilePhoto`, formData, {
-          withCredentials: true,
-          headers: {
-            "Content-Type": "multipart/form-data",
-          },
-        })
-        .then((response) => {
-          alert("Profile picture updated successfully!");
-        })
-        .catch((error) => {
-          console.error("Error updating profile picture:", error);
-          alert("Failed to update profile picture.");
-        });
-    }
-  };
+  //     axios
+  //       .post(`${HOST}/api/updateProfilePhoto`, formData, {
+  //         withCredentials: true,
+  //         headers: {
+  //           "Content-Type": "multipart/form-data",
+  //         },
+  //       })
+  //       .then((response) => {
+  //         alert("Profile picture updated successfully!");
+  //       })
+  //       .catch((error) => {
+  //         console.error("Error updating profile picture:", error);
+  //         alert("Failed to update profile picture.");
+  //       });
+  //   }
+  // };
 
   const handleSaveChanges = () => {
     const updateData = { name, phone };
@@ -140,13 +140,13 @@ const AdminSettings = () => {
               <img
                 src={
                   profilePic
-                    ? `/uploads/${profilePic}`
+                    ? `${HOST}/uploads/${encodeURIComponent(name)}/${encodeURIComponent(profilePic)}`
                     : "https://via.placeholder.com/100"
                 }
                 alt="Profile"
                 className="w-28 h-28 rounded-full mb-2 shadow"
               />
-              <div className="text-sm relative">
+              {/* <div className="text-sm relative"> //For future embedding image change
                 <FontAwesomeIcon
                   icon={faPencil}
                   className="bg-[#0064a2] hover:bg-[#00416A] p-2.5 rounded-full text-white absolute bottom-1 left-20 shadow-md hover:transition hover:scale-105 cursor-pointer"
@@ -160,7 +160,7 @@ const AdminSettings = () => {
                   onChange={handleProfilePicChange}
                   className="hidden"
                 />
-              </div>
+              </div> */}
             </div>
             <div className="poppins">
               <p className="text-3xl font-semibold">

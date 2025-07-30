@@ -216,7 +216,7 @@ const AdminRecords = () => {
                         <img
                           src={
                             entry.profilePhoto
-                              ? `/uploads/${entry.profilePhoto}`
+                              ? `${HOST}/uploads/${encodeURIComponent(entry.name)}/${encodeURIComponent(entry.profilePhoto)}`
                               : "https://via.placeholder.com/100"
                           }
                           alt="Profile"

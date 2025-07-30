@@ -36,22 +36,33 @@ const UserBar = () => {
   const email = localStorage.getItem("email");
 
   useEffect(() => {
-    const fetchAttendance = async () => {
+    const fetchUserNameAndAttendance = async () => {
       try {
-        const response = await axios.get(`${HOST}/api/attendance/get-user-attendance`, {
+        // Fetch attendance data
+        const response = await axios.get(
+          `${HOST}/api/attendance/get-user-attendance`,
+          {
+            params: { email },
+            withCredentials: true,
+            headers: {
+              "Content-Type": "application/json",
+            },
+          }
+        );
+        setAttendanceData(response.data);
+
+        // Fetch user name separately
+        const userRes = await axios.get(`${HOST}/api/user/get-user-name`, {
           params: { email },
           withCredentials: true,
           headers: {
-            'Content-Type': 'application/json'
-          }
+            "Content-Type": "application/json",
+          },
         });
-        setAttendanceData(response.data);
-        setEmployeeName(
-          response.data.length > 0 ? response.data[0].name : "Employee"
-        );
+        setEmployeeName(userRes.data?.name || "Employee");
       } catch (error) {
         console.error(
-          "Error fetching attendance:",
+          "Error fetching attendance or user name:",
           error.response?.data?.error || error.message
         );
       } finally {
@@ -59,9 +70,8 @@ const UserBar = () => {
       }
     };
 
-    fetchAttendance();
+    fetchUserNameAndAttendance();
   }, [employeeId]);
-
   if (loading) {
     return <p>Loading attendance data...</p>;
   }
@@ -179,7 +189,7 @@ const UserBar = () => {
     <>
       <div className="bg-white p-4 shadow-lg rounded-lg w-full">
         <h2 className="text-xl font-bold text-gray-800 mb-4">
-          {employeeName}&apos; Attendance Overview ({month} {year})
+          {employeeName}&apos;s Attendance Overview ({month} {year})
         </h2>
 
         {/* Input fields for month and year */}

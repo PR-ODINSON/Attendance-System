@@ -73,9 +73,7 @@ const NavBar = () => {
       <span>{name}</span>
       {profilePhoto.length > 0 && (
         <img
-          src={`/uploads/${extractNameFromImage(profilePhoto[0])}/${
-            profilePhoto[0]
-          }`}
+          src={`${HOST}/uploads/${encodeURIComponent(name)}/${encodeURIComponent(profilePhoto)}`}
           alt="Profile"
           className="w-8 h-8 rounded-full bg-cover"
         />

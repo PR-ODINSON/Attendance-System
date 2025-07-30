@@ -8,7 +8,6 @@ import dotenv from "dotenv";
 
 dotenv.config();
 
-const JWT_SECRET = process.env.JWT_SECRET;
 const uploadDir = "uploads";
 
 export const registerUser = async (req, res) => {
@@ -40,6 +39,10 @@ export const registerUser = async (req, res) => {
         const salt = await bcrypt.genSalt(10);
         const hashedPassword = await bcrypt.hash(password, salt);
 
+        const profilePhotoPath = profilePhotos.length > 0
+        ? profilePhotos[0]
+        : null;
+
         const result = await dbService.insert("users", {
             employee_id,
             name,
@@ -47,7 +50,7 @@ export const registerUser = async (req, res) => {
             phone,
             department,
             designation,
-            profilePhoto: JSON.stringify(profilePhotos),
+            profilePhoto: profilePhotoPath,
             password: hashedPassword,
             created_at: new Date()
         });

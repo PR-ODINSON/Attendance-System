@@ -154,7 +154,10 @@ const UserManagement = () => {
       <div className="w-5/6 min-h-screen flex flex-col p-8">
         <div className="flex justify-between items-center mb-6">
           <h2 className="text-3xl font-bold text-[#00416A] montserrat">
-            Employee Management
+            Employee Management 
+            <span className="ml-2 text-lg font-medium text-gray-500 align-middle">
+              ({employees.length})
+            </span>
           </h2>
           <button
             onClick={() => setIsOpen(true)}
@@ -196,7 +199,7 @@ const UserManagement = () => {
                   <img
                     src={
                       employee.profilePhoto
-                        ? `/uploads/${employee.profilePhoto}`
+                        ? `${HOST}/uploads/${encodeURIComponent(employee.name)}/${encodeURIComponent(employee.profilePhoto)}`
                         : "https://via.placeholder.com/100"
                     }
                     alt={employee.name}

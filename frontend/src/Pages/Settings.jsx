@@ -117,9 +117,7 @@ const Settings = () => {
             <div>
               {profilePic.length > 0 && (
                 <img
-                  src={`/uploads/${extractNameFromImage(profilePic[0])}/${
-                    profilePic[0]
-                  }`}
+                  src={`${HOST}/uploads/${encodeURIComponent(name)}/${encodeURIComponent(profilePic)}`}
                   alt="Profile"
                   className="w-28 h-28 rounded-full mb-2 shadow"
                 />

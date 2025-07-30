@@ -95,7 +95,7 @@ export const registerByAdmin = async (req, res) => {
         phone,
         department,
         designation,
-        JSON.stringify(profilePhotos),
+        profilePhotos[0],
         hashedPassword,
       ]
     );
