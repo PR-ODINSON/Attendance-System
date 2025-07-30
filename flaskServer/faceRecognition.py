@@ -239,6 +239,7 @@ import torch
 import requests
 import pandas as pd
 import faiss
+import time
 from PIL import Image
 from datetime import datetime
 from facenet_pytorch import InceptionResnetV1, MTCNN
@@ -348,7 +349,7 @@ def is_real_face(frame, box, anti_spoof):
     face_img_rgb = cv2.cvtColor(face_img_resized, cv2.COLOR_BGR2RGB)
     pil_image = Image.fromarray(face_img_rgb)
 
-    model_dir = "C:/Users/ayaan/OneDrive/Desktop/IITRAM/InSolare Project/New attendance git/flaskServer/Silent-Face-Anti-Spoofing/resources/anti_spoof_models/2.7_80x80_MiniFASNetV2.pth"
+    model_dir = "C:/Users/ayaan/OneDrive/Desktop/IITRAM/InSolare Project/AI Attendance System/flaskServer/Silent-Face-Anti-Spoofing/resources/anti_spoof_models/2.7_80x80_MiniFASNetV2.pth"
     # print(f"Model path: {model_dir}")  # Print to check what model path is being used
     prediction = anti_spoof.predict(pil_image, model_dir)
 
@@ -360,31 +361,48 @@ def is_real_face(frame, box, anti_spoof):
 
 # ------------------- Main -------------------
 
-cap = cv2.VideoCapture(0)
+# cap = cv2.VideoCapture(0) # Use webcam
+cap = cv2.VideoCapture("rtsp://admin:test@123@192.168.0.33:554/101") #For CCTV camera
+
+# Reduce camera input buffer size to minimize lag
+cap.set(cv2.CAP_PROP_BUFFERSIZE, 1)
+
 # Track already marked people forever during this session
 marked_once = set()
 
-
 print("Starting camera. Press 'q' to quit.")
 
-while cap.isOpened():
+while True:
+    # Flush old frames from buffer
+    for _ in range(4):  # Adjust depending on camera buffering
+        cap.grab()
+
     ret, frame = cap.read()
-    if not ret:
-        break
-    start_time = datetime.now()  
+
+    # Reconnect if stream fails
+    if not ret or frame is None or np.mean(frame) < 10:
+        print("Skipped invalid or noisy frame. Reconnecting...")
+        cap.release()
+        time.sleep(1)
+        cap = cv2.VideoCapture("rtsp://admin:test@123@192.168.0.33:554/101")
+        cap.set(cv2.CAP_PROP_BUFFERSIZE, 1)
+        continue
+
+    # Optional: Resize frame for faster processing (uncomment if needed)
+    frame = cv2.resize(frame, (720, 720))
+
+    start_time = datetime.now()
     rgb_frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
     embeddings_with_boxes = detect_and_encode(rgb_frame)
-
-    now = datetime.now()
 
     for embedding, box in embeddings_with_boxes:
         name, confidence = match_embedding(embedding)
         x1, y1, x2, y2 = map(int, box)
 
-        # 👉 Add this spoof detection step
-        if not is_real_face(frame, box,anti_spoof):
+        # Spoof detection
+        if not is_real_face(frame, box, anti_spoof):
             name = "Spoof Detected"
-            color = (0, 165, 255)  # Orange box for spoof
+            color = (0, 165, 255)
         else:
             color = (0, 255, 0) if name != 'Unknown' else (0, 0, 255)
 
@@ -400,10 +418,10 @@ while cap.isOpened():
         cv2.putText(frame, f"{name} ({confidence:.2f})", (x1, y1 - 10),
                     cv2.FONT_HERSHEY_SIMPLEX, 0.7, color, 2)
 
-    cv2.imshow("Face Recognition Attendance", frame)
+    cv2.imshow("Face Recognition Attendance - IP Camera", frame)
     if cv2.waitKey(1) & 0xFF == ord('q'):
         break
 
 cap.release()
 cv2.destroyAllWindows()
-print("Camera stopped.")
+print("IP Camera stream stopped.")

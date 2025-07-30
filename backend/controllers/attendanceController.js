@@ -152,7 +152,16 @@ export const getEmployeeAttendanceWithUser = async (req, res) => {
   try {
     const { employeeId } = req.params;
     const [attendance] = await pool.query("SELECT * FROM attendance WHERE employee_id = ?", [employeeId]);
-    const [[user]] = await pool.query("SELECT name FROM users WHERE employee_id = ?", [employeeId]);
+    const [[user]] = await pool.query("SELECT name, email FROM users WHERE employee_id = ?", [employeeId]);
+
+    if (!attendance.length) {
+      // No attendance, send name and email from users table
+      if (user) {
+        return res.status(200).json({ name: user.name, email: user.email });
+      } else {
+        return res.status(404).json({ error: "User not found" });
+      }
+    }
 
     const result = attendance.map(a => ({ ...a, name: user?.name || "Unknown" }));
     res.status(200).json(result);

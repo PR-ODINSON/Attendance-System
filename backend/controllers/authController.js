@@ -71,7 +71,7 @@ export const registerUser = async (req, res) => {
         console.log("Embeddings creation started...");
 
         // Trigger embeddings
-        const scriptPath = "C:/Users/ayaan/OneDrive/Desktop/IITRAM/InSolare Project/New attendance git/flaskServer/createEmbeddings.py";
+        const scriptPath = "C:/Users/ayaan/OneDrive/Desktop/IITRAM/InSolare Project/AI Attendance System/flaskServer/createEmbeddings.py";
         const uploadFolder = path.join("uploads", name);
         const command = `python "${scriptPath}" "${uploadFolder}"`;
 

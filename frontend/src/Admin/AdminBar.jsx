@@ -13,14 +13,7 @@ import { useParams } from "react-router-dom";
 import axios from "axios";
 import { HOST } from "../utils/constants";
 
-ChartJS.register(
-  CategoryScale,
-  LinearScale,
-  BarElement,
-  Title,
-  Tooltip,
-  Legend
-);
+ChartJS.register(CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend);
 
 const AttendanceBarChart = () => {
   const [attendanceData, setAttendanceData] = useState([]);
@@ -39,20 +32,24 @@ const AttendanceBarChart = () => {
         const response = await axios.get(
           `${HOST}/api/attendance/admin/${employeeId}`,
           {
-            withCredentials: true, // Enable sending cookies
+            withCredentials: true,
             headers: {
               "Content-Type": "application/json",
             },
           }
         );
+
         const data = response.data;
-        setAttendanceData(data);
-        setEmployeeName(data.length > 0 ? data[0].name : "Employee");
+
+        if (!Array.isArray(data)) {
+          setEmployeeName(data.name || "Employee");
+          setAttendanceData([]); // no attendance
+        } else {
+          setEmployeeName(data.length > 0 ? data[0].name : "Employee");
+          setAttendanceData(data);
+        }
       } catch (error) {
-        console.error(
-          "Error fetching attendance:",
-          error.response?.data || error.message
-        );
+        console.error("Error fetching attendance:", error.response?.data || error.message);
       } finally {
         setLoading(false);
       }
@@ -65,9 +62,8 @@ const AttendanceBarChart = () => {
     return <p>Loading attendance data...</p>;
   }
 
-  // Update generateWorkingDates to use month and year from state
   const generateWorkingDates = () => {
-    const monthIndex = new Date(Date.parse(month + " 1, 2021")).getMonth(); // Get month index
+    const monthIndex = new Date(Date.parse(month + " 1, 2021")).getMonth();
     const daysInMonth = new Date(year, monthIndex + 1, 0).getDate();
     let workingDates = [];
 
@@ -89,6 +85,7 @@ const AttendanceBarChart = () => {
   };
 
   const workingDates = generateWorkingDates();
+
   const filteredAttendanceData = workingDates.map((date) => {
     const record = attendanceData.find(
       (data) =>
@@ -114,10 +111,9 @@ const AttendanceBarChart = () => {
     const index = tooltipItem.dataIndex;
     const record = filteredAttendanceData[index];
 
-    if (record.status === "Absent") {
-      return "Absent";
-    }
-    return `Check-In: ${record.check_in_time || "N/A"}\nCheck-Out: ${
+    if (record.status === "Absent") return "Absent";
+
+    return `Check-In: ${record.check_in_time || "N/A"} | Check-Out: ${
       record.check_out_time || "N/A"
     }`;
   };
@@ -127,15 +123,25 @@ const AttendanceBarChart = () => {
     datasets: [
       {
         label: "Working Hours",
-        data: filteredAttendanceData.map((date) => {
-          if (!date.check_in_time || !date.check_out_time) {
+        data: filteredAttendanceData.map((entry) => {
+          if (!entry.check_in_time || !entry.check_out_time) return 0;
+
+          try {
+            const [inH, inM, inS] = entry.check_in_time.split(":").map(Number);
+            const [outH, outM, outS] = entry.check_out_time.split(":").map(Number);
+
+            const dateObj = new Date(entry.date);
+            const checkIn = new Date(dateObj);
+            checkIn.setHours(inH, inM, inS || 0);
+
+            const checkOut = new Date(dateObj);
+            checkOut.setHours(outH, outM, outS || 0);
+
+            const diff = (checkOut - checkIn) / (1000 * 60 * 60); // in hours
+            return diff > 0 && diff < 24 ? diff : 0;
+          } catch {
             return 0;
           }
-          const checkIn = new Date(`${date.date}T${date.check_in_time}Z`);
-          const checkOut = new Date(`${date.date}T${date.check_out_time}Z`);
-          return isNaN(checkIn) || isNaN(checkOut)
-            ? 0
-            : (checkOut - checkIn) / (1000 * 60 * 60);
         }),
         backgroundColor: barColors,
         borderRadius: 5,
@@ -165,7 +171,6 @@ const AttendanceBarChart = () => {
     },
   };
 
-  // Function to handle month and year change
   const handleMonthChange = (e) => {
     setMonth(e.target.value);
   };
@@ -175,39 +180,36 @@ const AttendanceBarChart = () => {
   };
 
   return (
-    <>
-      <div className="bg-white p-4 shadow-lg rounded-lg w-full">
-        <h2 className="text-xl font-bold text-gray-800 mb-4">
-          {employeeName}&apos; Attendance Overview ({month} {year})
-        </h2>
+    <div className="bg-white p-4 shadow-lg rounded-lg w-full">
+      <h2 className="text-xl font-bold text-gray-800 mb-4">
+        {employeeName}&apos;s Attendance Overview ({month} {year})
+      </h2>
 
-        {/* Input fields for month and year */}
-        <div className="mb-4 flex gap-4">
-          <label className="block mb-2">
-            Month:
-            <input
-              type="text"
-              value={month}
-              onChange={handleMonthChange}
-              placeholder="Enter month (e.g., January)"
-              className="border rounded p-2 w-full"
-            />
-          </label>
-          <label className="block mb-2">
-            Year:
-            <input
-              type="number"
-              value={year}
-              onChange={handleYearChange}
-              placeholder="Enter year (e.g., 2023)"
-              className="border rounded p-2 w-full"
-            />
-          </label>
-        </div>
-
-        <Bar data={data} options={options} />
+      <div className="mb-4 flex gap-4">
+        <label className="block mb-2">
+          Month:
+          <input
+            type="text"
+            value={month}
+            onChange={handleMonthChange}
+            placeholder="Enter month (e.g., January)"
+            className="border rounded p-2 w-full"
+          />
+        </label>
+        <label className="block mb-2">
+          Year:
+          <input
+            type="number"
+            value={year}
+            onChange={handleYearChange}
+            placeholder="Enter year (e.g., 2023)"
+            className="border rounded p-2 w-full"
+          />
+        </label>
       </div>
-    </>
+
+      <Bar data={data} options={options} />
+    </div>
   );
 };
 

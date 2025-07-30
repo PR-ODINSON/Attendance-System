@@ -18,20 +18,25 @@ const UserDataTile = () => {
       try {
         if (!employeeId) return;
         const response = await axios.get(`${HOST}/api/attendance/admin/${employeeId}`, {
-            withCredentials: true,  // Enable sending cookies
-            headers: {
-                'Content-Type': 'application/json'
-            }
+          withCredentials: true,
+          headers: {
+            "Content-Type": "application/json",
+          },
         });
-        const attendanceData = response.data;
 
-        const summary = {
-          Present: attendanceData.filter((item) => item.status === "Present").length,
-          Absent: attendanceData.filter((item) => item.status === "Absent").length,
-          Late: attendanceData.filter((item) => item.status === "Late").length,
-        };
+        const data = response.data;
 
-        setAttendance(summary);
+        if (Array.isArray(data)) {
+          const summary = {
+            Present: data.filter((item) => item.status === "Present").length,
+            Absent: data.filter((item) => item.status === "Absent").length,
+            Late: data.filter((item) => item.status === "Late").length,
+          };
+          setAttendance(summary);
+        } else {
+          // No attendance data, default remains as 0
+          setAttendance({ Present: 0, Absent: 0, Late: 0 });
+        }
       } catch (error) {
         console.error("Error fetching attendance data:", error);
       }
@@ -88,8 +93,21 @@ const UserDataTile = () => {
                 <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
               ))}
             </Pie>
-            <Tooltip contentStyle={{ backgroundColor: "#fff", borderRadius: "8px", padding: "8px", border: "none" }} />
-            <Legend align="center" verticalAlign="bottom" layout="horizontal" iconSize={12} wrapperStyle={{ paddingTop: "12px" }} />
+            <Tooltip
+              contentStyle={{
+                backgroundColor: "#fff",
+                borderRadius: "8px",
+                padding: "8px",
+                border: "none",
+              }}
+            />
+            <Legend
+              align="center"
+              verticalAlign="bottom"
+              layout="horizontal"
+              iconSize={12}
+              wrapperStyle={{ paddingTop: "12px" }}
+            />
           </PieChart>
         </div>
 

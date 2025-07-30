@@ -15,27 +15,27 @@ const UserCalendar = () => {
     const fetchAttendance = async () => {
       try {
         const response = await axios.get(`${HOST}/api/attendance/admin/${employeeId}`, {
-            withCredentials: true,  // Enable sending cookies
-            headers: {
-                'Content-Type': 'application/json'
-            }
+          withCredentials: true,
+          headers: {
+            "Content-Type": "application/json",
+          },
         });
-        console.log("Fetched Attendance Data:", response.data);
 
+        const data = response.data;
         const attendanceMap = {};
-        response.data.forEach((entry) => {
-          const formattedDate = new Date(entry.date).toLocaleDateString(
-            "en-GB",
-            {
+
+        if (Array.isArray(data)) {
+          data.forEach((entry) => {
+            const formattedDate = new Date(entry.date).toLocaleDateString("en-GB", {
               timeZone: "Asia/Kolkata",
-            }
-          );
-          attendanceMap[formattedDate] = {
-            status: entry.status,
-            checkInTime: entry.check_in_time,
-            checkOutTime: entry.check_out_time,
-          };
-        });
+            });
+            attendanceMap[formattedDate] = {
+              status: entry.status,
+              checkInTime: entry.check_in_time,
+              checkOutTime: entry.check_out_time,
+            };
+          });
+        }
 
         setAttendance(attendanceMap);
       } catch (error) {

@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 
 const UserWelcome = () => {
-  const [name, setName] = useState("");
+  const [name, setName] = useState("Loading...");
   const { employeeId } = useParams();
 
   useEffect(() => {
@@ -13,18 +13,23 @@ const UserWelcome = () => {
         const response = await axios.get(
           `${HOST}/api/attendance/admin/${employeeId}`,
           {
-            withCredentials: true, // Enable sending cookies
+            withCredentials: true,
             headers: {
               "Content-Type": "application/json",
             },
           }
         );
-        console.log("API Response:", response.data);
 
-        if (response.data) {
-          setName(response.data[0].name);
+        const data = response.data;
+        console.log("API Response:", data);
+
+        if (Array.isArray(data) && data.length > 0) {
+          // Attendance present with name
+          setName(data[0].name || "Unnamed");
+        } else if (data && typeof data === "object" && data.name) {
+          // Only name and email returned
+          setName(data.name);
         } else {
-          console.warn("No attendance data found for this employee.");
           setName("No Name Found");
         }
       } catch (error) {

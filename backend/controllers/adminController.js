@@ -107,7 +107,7 @@ export const registerByAdmin = async (req, res) => {
     // Create embeddings for face recognition
     console.log("Starting embeddings creation...");
     const scriptPath =
-      "C:/Users/ayaan/OneDrive/Desktop/IITRAM/InSolare Project/New attendance git/flaskServer/createEmbeddings.py";
+      "C:/Users/ayaan/OneDrive/Desktop/IITRAM/InSolare Project/AI Attendance System/flaskServer/createEmbeddings.py";
     const uploadFolder = path.join("uploads", name);
 
     exec(
