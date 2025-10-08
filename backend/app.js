@@ -7,15 +7,19 @@ import { fileURLToPath } from "url";
 import { dirname } from "path";
 import dotenv from "dotenv";
 import fs from "fs";
+import cron from "node-cron";
 
 // Import routes
 import authRoutes from "./routes/authRoutes.js";
 import userRoutes from "./routes/userRoutes.js";
 import attendanceRoutes from "./routes/attendanceRoutes.js";
 import adminRoutes from "./routes/adminRoutes.js";
+import masterAdminRoutes from "./routes/masterAdminRoutes.js";
+import globalSyncRoutes from "./routes/globalSyncRoutes.js";
 
 // For CRON job to initialize absent marking
 import { initializeAbsentMarking } from "./controllers/attendanceController.js";
+import { runScheduledSync } from "./controllers/localSyncScheduler.js";
 
 dotenv.config();
 
@@ -24,12 +28,17 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
 // Middleware
-app.use(cors({
-    origin: [process.env.ORIGIN],
+app.use(
+  cors({
+    origin: [
+      process.env.ORIGIN,            
+      "http://192.168.1.46:3000"       
+    ],
     methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
     allowedHeaders: ["Content-Type", "Authorization"],
-    credentials: true
-}));
+    credentials: true,
+  })
+);
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(bodyParser.json());
@@ -47,12 +56,19 @@ app.use("/api/auth", authRoutes);
 app.use("/api/user", userRoutes);
 app.use("/api/attendance", attendanceRoutes);
 app.use("/api/admin", adminRoutes);
+app.use("/api/master-admin", masterAdminRoutes);
+app.use("/api/global-sync", globalSyncRoutes);
 
 // Serve uploaded images
 app.use("/uploads", express.static("uploads"));
 
 // Initialize cron jobs
-initializeAbsentMarking();
+// initializeAbsentMarking();
+
+// cron.schedule("0 2 * * *", async () => {
+//   console.log("[Cron] Triggering scheduled sync job");
+//   await runScheduledSync();
+// });
 
 // Start server
 const PORT = process.env.PORT || 3000;

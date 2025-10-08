@@ -147,7 +147,7 @@ const SignIn = () => {
       </div>
 
       {/* Custom Animations */}
-      <style jsx>{`
+      <style jsx="true">{`
         @keyframes float {
           from {
             transform: translateY(0px);

@@ -12,10 +12,12 @@ import AdminSidebar from "./Admin/AdminSidebar";
 import AdminSettings from "./Admin/AdminSettings";
 import UserDashboard from "./Admin/UserDashboard";
 import UserManagement from "./Admin/UserManagement";
+import MasterAdminDashboard from './MasterAdmin/MasterAdminDashboard';
+import SiteDetailsPage from './MasterAdmin/SiteDetailsPage';
 // import ProtectedRoute from "./Components/ProtectedRoute"; //ToDO
 
 const App = () => {
-  const location = useLocation();
+  const location = useLocation(); 
 
   return (
     <>
@@ -34,6 +36,8 @@ const App = () => {
             <Route path="/settings" element={<Settings />}></Route>
             <Route path="/adminSettings" element={<AdminSettings />}></Route>
             <Route path="/userManagement" element={<UserManagement />}></Route>
+            <Route path="/masterDashboard" element={<MasterAdminDashboard />} />
+            <Route path="/masterDashboard/sites/:siteId" element={<SiteDetailsPage />} />
           </Routes>
         </div>
       </div>
