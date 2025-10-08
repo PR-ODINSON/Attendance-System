@@ -381,7 +381,7 @@ const SiteDetailsPage = () => {
                 <div key={index} className="bg-gradient-to-br from-slate-50 to-blue-50 rounded-2xl p-6 border-2 border-gray-200 hover:border-blue-300 hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1">
                   <div className="flex items-center space-x-4 mb-4">
                     {admin.profilePhoto ? (
-                      <img src={admin.profilePhoto} alt={admin.name} className="w-14 h-14 rounded-full object-cover ring-4 ring-white shadow-lg" />
+                      <img src="https://static.vecteezy.com/system/resources/previews/020/429/953/original/admin-icon-vector.jpg" alt={admin.name} className="w-14 h-14 rounded-full object-cover ring-4 ring-white shadow-lg" />
                     ) : (
                       <div className="w-14 h-14 bg-gradient-to-br from-[#00416A] to-[#0064a2] rounded-full flex items-center justify-center text-white font-bold text-xl shadow-lg">
                         {admin.name?.charAt(0)}
