@@ -32,7 +32,7 @@ app.use(
   cors({
     origin: [
       process.env.ORIGIN,            
-      "http://192.168.1.46:3000"       
+      'http://192.168.1.37:3000'       
     ],
     methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
     allowedHeaders: ["Content-Type", "Authorization"],

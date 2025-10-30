@@ -615,7 +615,7 @@ const SiteDetailsPage = () => {
                         <td className="px-6 py-4 whitespace-nowrap">
                           {user.profilePhoto ? (
                             <img
-                              src={user.profilePhoto}
+                              src={'https://png.pngtree.com/png-vector/20221023/ourlarge/pngtree-employee-employee-person-business-vector-png-image_34368596.png'}
                               alt={user.name}
                               className="w-12 h-12 rounded-full object-cover ring-2 ring-gray-300 group-hover:ring-blue-400 transition-all shadow-md"
                             />
