@@ -6,7 +6,9 @@ import {
     getEmployeeAttendance,
     getEmployeeAttendanceWithUser,
     getBarAttendance,
-    markAttendance
+    markAttendance,
+    getSessionStatistics,
+    getSessionDetails
 } from "../controllers/attendanceController.js";
 import { authenticateToken } from "../middleware/authToken.js";
 
@@ -19,5 +21,9 @@ attendanceRoutes.get("/employee/:employeeId", authenticateToken, getEmployeeAtte
 attendanceRoutes.get("/admin/:employeeId", authenticateToken, getEmployeeAttendanceWithUser);
 // attendanceRoutes.get("/bar/attendance", authenticateToken, getBarAttendance);
 attendanceRoutes.post("/mark-attendance", markAttendance);  // No auth required for face recognition
+
+// New endpoints for session statistics and details
+attendanceRoutes.get("/session-statistics", authenticateToken, getSessionStatistics);
+attendanceRoutes.get("/session-details/:employeeId", authenticateToken, getSessionDetails);
 
 export default attendanceRoutes;

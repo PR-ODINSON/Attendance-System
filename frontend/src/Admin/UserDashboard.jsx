@@ -5,6 +5,8 @@ import UserDataTile from './UserDataTile';
 import UserCalendar from './UserCalendar';
 import UserExtractData from "./UserExtractData"
 import AdminBar from './AdminBar'
+import SessionMetrics from '../Components/SessionMetrics';
+import ExpandableSessionDetails from '../Components/ExpandableSessionDetails';
 import { useParams } from 'react-router-dom';
 
 const UserDashboard = () => {
@@ -18,11 +20,17 @@ const UserDashboard = () => {
             <div className='w-full flex gap-6'>
               <div className='w-1/2 rounded-lg'>
                 <UserWelcome employeeId={employeeId} />
+                {employeeId && (
+                  <SessionMetrics employeeId={employeeId} />
+                )}
                 <UserDataTile employeeId={employeeId} />
                 <UserExtractData employeeId={employeeId} />
               </div>
               <UserCalendar employeeId={employeeId} />
             </div>
+            {employeeId && (
+              <ExpandableSessionDetails employeeId={employeeId} />
+            )}
             <AdminBar employeeId={employeeId} />
             {/* <div className='w-1/2'>
               <User5DaysHistory employeeId={employeeId} />

@@ -76,12 +76,16 @@ const AdminSettings = () => {
   // };
 
   const handleSaveChanges = () => {
-    const updateData = { name, phone };
-
-    if (oldPassword && newPassword) {
-      updateData.oldPassword = oldPassword;
-      updateData.newPassword = newPassword;
+    // Data added through models cannot be edited - only password can be changed
+    if (!oldPassword || !newPassword) {
+      alert("Please enter both old and new passwords. Note: Name, email, and phone cannot be modified as they were added through the registration model.");
+      return;
     }
+
+    const updateData = {
+      oldPassword,
+      newPassword
+    };
 
     axios
       .patch(`${HOST}/api/user/update-details`, updateData, {
@@ -91,12 +95,15 @@ const AdminSettings = () => {
         },
       })
       .then((response) => {
-        alert("Changes saved successfully!");
-        console.log("User details updated successfully:", response.data);
+        alert("Password updated successfully!");
+        console.log("Password updated successfully:", response.data);
+        // Clear password fields after successful update
+        setOldPassword("");
+        setNewPassword("");
       })
       .catch((error) => {
-        console.error("Error saving changes:", error);
-        alert(error.response?.data?.error || "Failed to update user details.");
+        console.error("Error updating password:", error);
+        alert(error.response?.data?.error || "Failed to update password.");
       });
   };
 
@@ -184,34 +191,37 @@ const AdminSettings = () => {
           </div>
         </div>
 
-        <div className="w-full mb-4 flex justify-between text-gray-700">
+        <div className="w-full mb-4 flex justify-between text-gray-400">
           <div className="w-1/2 mr-2">
             <label className="block font-medium">Name</label>
             <input
               type="text"
-              className="w-full p-2 border rounded"
+              className="w-full p-2 border rounded cursor-not-allowed bg-gray-50"
               value={name}
-              onChange={(e) => setName(e.target.value)}
+              disabled
+              title="Data added through models cannot be edited"
             />
           </div>
           <div className="w-1/2 ml-2">
             <label className="block font-medium">Email</label>
             <input
               type="email"
-              className="w-full p-2 border rounded"
+              className="w-full p-2 border rounded cursor-not-allowed bg-gray-50"
               value={email}
-              onChange={(e) => setEmail(e.target.value)}
+              disabled
+              title="Data added through models cannot be edited"
             />
           </div>
         </div>
 
-        <div className="w-[39.2vw] mb-4 text-gray-700">
+        <div className="w-[39.2vw] mb-4 text-gray-400">
           <label className="block font-medium">Phone</label>
           <input
             type="text"
-            className="w-full p-2 border rounded"
+            className="w-full p-2 border rounded cursor-not-allowed bg-gray-50"
             value={phone}
-            onChange={(e) => setPhone(e.target.value)}
+            disabled
+            title="Data added through models cannot be edited"
           />
         </div>
 

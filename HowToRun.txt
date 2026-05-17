@@ -1,0 +1,23 @@
+Activate python virtual env:
+& "C:/Users/GENIUS/Desktop/AI Attendance Software/torch_env/Scripts/Activate.ps1"
+
+Step1:
+Open Terminal (Powershell)
+cd frontend
+npm run dev
+
+(Note: Check if the IP Address shown in teminal e.g. Network: 192.168.1.6 is same in both .env and contants.js. Check only IP Address and not port number)
+
+Step2:
+Open Terminal (Powershell)
+cd backend
+npm start
+
+Step3:
+Open Terminal (Powershell)
+cd backend
+npm run worker
+ 
+ 
+
+ 

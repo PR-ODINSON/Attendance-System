@@ -19,8 +19,8 @@ function log(message, level = "INFO") {
 log("Sync Worker started successfully");
 
 // Synchronization job
-cron.schedule("0 2 * * *", async () => {
-  console.log("[Cron] Triggering scheduled sync job at 2 AM");
+cron.schedule("0 12 * * *", async () => {
+  console.log("[Cron] Triggering scheduled sync job");
   await runScheduledSync();
 });
 

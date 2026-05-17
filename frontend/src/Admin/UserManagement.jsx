@@ -2,15 +2,19 @@ import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import { HOST } from "../utils/constants";
-import { FiUserPlus, FiSearch } from "react-icons/fi";
+import { FiUserPlus, FiSearch, FiEdit2, FiTrash2 } from "react-icons/fi";
 import ReactModal from "react-modal";
 
 const UserManagement = () => {
   const [employees, setEmployees] = useState([]);
   const [searchQuery, setSearchQuery] = useState("");
   const [isOpen, setIsOpen] = useState(false);
+  const [isEditMode, setIsEditMode] = useState(false);
+  const [selectedEmployee, setSelectedEmployee] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
+  const [employeeToDelete, setEmployeeToDelete] = useState(null);
   const navigate = useNavigate();
   ReactModal.setAppElement("#root");
 
@@ -91,7 +95,6 @@ const UserManagement = () => {
   );
 
   const handleSubmit = async (e) => {
-    const employee_id = generateEmployeeId();
     e.preventDefault();
     try {
       const isAdmin = formData.designation.toLowerCase() === "admin";
@@ -109,44 +112,137 @@ const UserManagement = () => {
           Array.from(formData.profilePhotos).forEach((file) => {
             formDataObj.append("profilePhotos", file);
           });
-        } else {
+        } else if (key !== "isAdmin") {
           formDataObj.append(key, formData[key]);
         }
       });
-      formDataObj.append("employee_id", employee_id);
 
-      if (isAdmin) {
-        formDataObj.append("adminEmail", adminAuth.email);
-        formDataObj.append("adminPassword", adminAuth.password);
+      if (isEditMode) {
+        // Update employee
+        if (isAdmin || selectedEmployee?.designation.toLowerCase() === "admin") {
+          formDataObj.append("adminEmail", adminAuth.email);
+          formDataObj.append("adminPassword", adminAuth.password);
+        }
+
+        await axios.put(
+          `${HOST}/api/admin/update-employee/${selectedEmployee.employee_id}`,
+          formDataObj,
+          {
+            withCredentials: true,
+            headers: { "Content-Type": "multipart/form-data" },
+          }
+        );
+
+        alert("Employee updated successfully!");
+      } else {
+        // Register new employee
+        const employee_id = generateEmployeeId();
+        formDataObj.append("employee_id", employee_id);
+
+        if (isAdmin) {
+          formDataObj.append("adminEmail", adminAuth.email);
+          formDataObj.append("adminPassword", adminAuth.password);
+        }
+
+        await axios.post(`${HOST}/api/admin/register-by-admin`, formDataObj, {
+          withCredentials: true,
+          headers: { "Content-Type": "multipart/form-data" },
+        });
+
+        alert("Employee registered successfully!");
       }
-
-      console.log("Files being sent:", formData.profilePhotos);
-
-      await axios.post(`${HOST}/api/admin/register-by-admin`, formDataObj, {
-        withCredentials: true,
-        headers: { "Content-Type": "multipart/form-data" },
-      });
 
       setIsOpen(false);
       fetchEmployees();
-      setFormData({
-        name: "",
-        email: "",
-        phone: "",
-        department: "",
-        designation: "",
-        password: "",
-        profilePhotos: [],
-        isAdmin: false,
-      });
-      setAdminAuth({
-        email: "",
-        password: "",
-      });
+      resetForm();
     } catch (error) {
       console.log(error);
-      alert(error.response?.data?.message || "Registration failed");
+      alert(error.response?.data?.error || error.response?.data?.message || "Operation failed");
     }
+  };
+
+  const resetForm = () => {
+    setFormData({
+      name: "",
+      email: "",
+      phone: "",
+      department: "",
+      designation: "",
+      password: "",
+      profilePhotos: [],
+      isAdmin: false,
+    });
+    setAdminAuth({
+      email: "",
+      password: "",
+    });
+    setIsEditMode(false);
+    setSelectedEmployee(null);
+    setShowAdminAuth(false);
+  };
+
+  const handleEditEmployee = (e, employee) => {
+    e.stopPropagation();
+    setSelectedEmployee(employee);
+    setIsEditMode(true);
+    setFormData({
+      name: employee.name,
+      email: employee.email,
+      phone: employee.phone || "",
+      department: employee.department,
+      designation: employee.designation,
+      password: "",
+      profilePhotos: [],
+      isAdmin: employee.designation.toLowerCase() === "admin",
+    });
+    if (employee.designation.toLowerCase() === "admin") {
+      setShowAdminAuth(true);
+    }
+    setIsOpen(true);
+  };
+
+  const handleDeleteClick = (e, employee) => {
+    e.stopPropagation();
+    setEmployeeToDelete(employee);
+    setDeleteConfirmOpen(true);
+  };
+
+  const handleDeleteConfirm = async () => {
+    try {
+      const isAdmin = employeeToDelete.designation.toLowerCase() === "admin";
+      
+      if (isAdmin) {
+        if (!adminAuth.email || !adminAuth.password) {
+          alert("Admin credentials required to delete admin users");
+          return;
+        }
+      }
+
+      await axios.delete(
+        `${HOST}/api/admin/delete-employee/${employeeToDelete.employee_id}`,
+        {
+          withCredentials: true,
+          data: {
+            adminEmail: adminAuth.email || undefined,
+            adminPassword: adminAuth.password || undefined,
+          },
+        }
+      );
+
+      alert("Employee deleted successfully!");
+      setDeleteConfirmOpen(false);
+      setEmployeeToDelete(null);
+      setAdminAuth({ email: "", password: "" });
+      fetchEmployees();
+    } catch (error) {
+      console.log(error);
+      alert(error.response?.data?.error || error.response?.data?.message || "Delete failed");
+    }
+  };
+
+  const openAddEmployeeModal = () => {
+    resetForm();
+    setIsOpen(true);
   };
 
   return (
@@ -160,7 +256,7 @@ const UserManagement = () => {
             </span>
           </h2>
           <button
-            onClick={() => setIsOpen(true)}
+            onClick={openAddEmployeeModal}
             className="flex items-center px-4 py-2 bg-[#00416A] text-white rounded-lg hover:bg-[#003151] transition-colors"
           >
             <FiUserPlus className="mr-2" />
@@ -190,67 +286,95 @@ const UserManagement = () => {
             {filteredEmployees.map((employee) => (
               <div
                 key={employee.employee_id}
-                onClick={() =>
-                  navigate(`/userDashboard/${employee.employee_id}`)
-                }
-                className="bg-white rounded-xl shadow-lg p-6 cursor-pointer hover:shadow-xl transition-shadow"
+                className="bg-white rounded-xl shadow-lg p-6 hover:shadow-xl transition-shadow relative"
               >
-                <div className="flex items-center space-x-4">
-                  <img
-                    src={
-                      employee.profilePhoto
-                        ? `${HOST}/uploads/${encodeURIComponent(employee.name)}/${encodeURIComponent(employee.profilePhoto)}`
-                        : "https://via.placeholder.com/100"
-                    }
-                    alt={employee.name}
-                    className="w-16 h-16 rounded-full object-cover"
-                  />
-                  <div>
-                    <h3 className="font-semibold text-lg">{employee.name}</h3>
-                    <p className="text-sm text-gray-600">
-                      ID: {employee.employee_id}
+                <div
+                  onClick={() =>
+                    navigate(`/userDashboard/${employee.employee_id}`)
+                  }
+                  className="cursor-pointer"
+                >
+                  <div className="flex items-center space-x-4">
+                    <img
+                      src={
+                        employee.profilePhoto
+                          ? `${HOST}/uploads/${encodeURIComponent(employee.name)}/${encodeURIComponent(employee.profilePhoto)}`
+                          : "https://via.placeholder.com/100"
+                      }
+                      alt={employee.name}
+                      className="w-16 h-16 rounded-full object-cover"
+                    />
+                    <div>
+                      <h3 className="font-semibold text-lg">{employee.name}</h3>
+                      <p className="text-sm text-gray-600">
+                        ID: {employee.employee_id}
+                      </p>
+                    </div>
+                  </div>
+                  <div className="mt-4 space-y-2">
+                    <p className="text-sm">
+                      <span className="font-medium">Department:</span>{" "}
+                      {employee.department}
+                    </p>
+                    <p className="text-sm">
+                      <span className="font-medium">Designation:</span>{" "}
+                      <span
+                        className={
+                          employee.designation.toLowerCase() === "admin"
+                            ? "text-[#00416A] font-semibold"
+                            : ""
+                        }
+                      >
+                        {employee.designation}
+                      </span>
                     </p>
                   </div>
                 </div>
-                <div className="mt-4 space-y-2">
-                  <p className="text-sm">
-                    <span className="font-medium">Department:</span>{" "}
-                    {employee.department}
-                  </p>
-                  <p className="text-sm">
-                    <span className="font-medium">Designation:</span>{" "}
-                    <span
-                      className={
-                        employee.designation.toLowerCase() === "admin"
-                          ? "text-[#00416A] font-semibold"
-                          : ""
-                      }
-                    >
-                      {employee.designation}
-                    </span>
-                  </p>
+
+                {/* Action Buttons */}
+                <div className="flex justify-end gap-2 mt-4 pt-4 border-t border-gray-200">
+                  <button
+                    onClick={(e) => handleEditEmployee(e, employee)}
+                    className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+                    title="Edit Employee"
+                  >
+                    <FiEdit2 className="w-5 h-5" />
+                  </button>
+                  <button
+                    onClick={(e) => handleDeleteClick(e, employee)}
+                    className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                    title="Delete Employee"
+                  >
+                    <FiTrash2 className="w-5 h-5" />
+                  </button>
                 </div>
               </div>
             ))}
           </div>
         )}
 
-        {/* Register User Dialog */}
+        {/* Register/Edit User Dialog */}
         <ReactModal
           isOpen={isOpen}
-          onRequestClose={() => setIsOpen(false)}
-          contentLabel="Register New Employee"
+          onRequestClose={() => {
+            setIsOpen(false);
+            resetForm();
+          }}
+          contentLabel={isEditMode ? "Edit Employee" : "Register New Employee"}
           shouldCloseOnOverlayClick={false} // Prevent closing on overlay click
           className="max-w-2xl w-full bg-white p-8 rounded-xl shadow-xl mx-auto my-10 relative"
           overlayClassName="fixed inset-0 bg-white flex justify-center items-center z-50 overflow-y-auto"
         >
           <div className="relative">
             <h2 className="text-2xl font-bold text-[#00416A] mb-6 montserrat">
-              Register New Employee
+              {isEditMode ? "Edit Employee" : "Register New Employee"}
             </h2>
 
             <button
-              onClick={() => setIsOpen(false)}
+              onClick={() => {
+                setIsOpen(false);
+                resetForm();
+              }}
               className="absolute top-0 right-0 text-gray-500 hover:text-gray-700"
             >
               <svg
@@ -272,7 +396,8 @@ const UserManagement = () => {
               {/* Profile Photos */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Profile Photos <span className="text-red-500">*</span>
+                  Profile Photos {!isEditMode && <span className="text-red-500">*</span>}
+                  {isEditMode && <span className="text-xs text-gray-500"> (Leave empty to keep existing)</span>}
                 </label>
                 <input
                   name="profilePhotos"
@@ -281,7 +406,7 @@ const UserManagement = () => {
                   accept="image/*"
                   onChange={handleFileChange}
                   className="w-full p-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#00416A] focus:border-transparent"
-                  required
+                  required={!isEditMode}
                 />
                 {formData.profilePhotos.length > 0 && (
                   <p className="text-sm text-green-600 mt-1">
@@ -368,7 +493,8 @@ const UserManagement = () => {
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Password <span className="text-red-500">*</span>
+                    Password {!isEditMode && <span className="text-red-500">*</span>}
+                    {isEditMode && <span className="text-xs text-gray-500"> (Leave empty to keep existing)</span>}
                   </label>
                   <input
                     name="password"
@@ -376,7 +502,7 @@ const UserManagement = () => {
                     value={formData.password}
                     onChange={handleChange}
                     className="w-full p-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#00416A] focus:border-transparent"
-                    required
+                    required={!isEditMode}
                   />
                 </div>
               </div>
@@ -446,7 +572,10 @@ const UserManagement = () => {
               <div className="flex justify-end space-x-3 mt-6 pt-4 border-t">
                 <button
                   type="button"
-                  onClick={() => setIsOpen(false)}
+                  onClick={() => {
+                    setIsOpen(false);
+                    resetForm();
+                  }}
                   className="px-4 py-2 text-gray-600 hover:text-gray-800"
                 >
                   Cancel
@@ -455,10 +584,77 @@ const UserManagement = () => {
                   type="submit"
                   className="px-6 py-2 bg-[#00416A] text-white rounded-lg hover:bg-[#003151] transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#00416A]"
                 >
-                  Register
+                  {isEditMode ? "Update" : "Register"}
                 </button>
               </div>
             </form>
+          </div>
+        </ReactModal>
+
+        {/* Delete Confirmation Modal */}
+        <ReactModal
+          isOpen={deleteConfirmOpen}
+          onRequestClose={() => setDeleteConfirmOpen(false)}
+          contentLabel="Delete Employee"
+          className="max-w-md w-full bg-white p-8 rounded-xl shadow-xl mx-auto my-10 relative"
+          overlayClassName="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50"
+        >
+          <div>
+            <h2 className="text-2xl font-bold text-red-600 mb-4">
+              Delete Employee
+            </h2>
+            <p className="text-gray-700 mb-6">
+              Are you sure you want to delete{" "}
+              <span className="font-semibold">{employeeToDelete?.name}</span>?
+              This action cannot be undone.
+            </p>
+
+            {employeeToDelete?.designation.toLowerCase() === "admin" && (
+              <div className="space-y-4 p-4 bg-gray-50 rounded-lg border border-gray-200 mb-4">
+                <h4 className="font-medium text-[#00416A]">
+                  Admin Authentication Required
+                </h4>
+                <div className="space-y-3">
+                  <input
+                    type="email"
+                    placeholder="Admin Email"
+                    value={adminAuth.email}
+                    onChange={(e) =>
+                      setAdminAuth({ ...adminAuth, email: e.target.value })
+                    }
+                    className="w-full p-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#00416A] focus:border-transparent"
+                  />
+                  <input
+                    type="password"
+                    placeholder="Admin Password"
+                    value={adminAuth.password}
+                    onChange={(e) =>
+                      setAdminAuth({ ...adminAuth, password: e.target.value })
+                    }
+                    className="w-full p-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#00416A] focus:border-transparent"
+                  />
+                </div>
+              </div>
+            )}
+
+            <div className="flex justify-end space-x-3">
+              <button
+                onClick={() => {
+                  setDeleteConfirmOpen(false);
+                  setEmployeeToDelete(null);
+                  setAdminAuth({ email: "", password: "" });
+                }}
+                className="px-4 py-2 text-gray-600 hover:text-gray-800"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleDeleteConfirm}
+                className="px-6 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors"
+              >
+                Delete
+              </button>
+            </div>
           </div>
         </ReactModal>
       </div>

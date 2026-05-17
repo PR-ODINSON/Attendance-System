@@ -188,13 +188,24 @@ const AttendanceBarChart = () => {
       <div className="mb-4 flex gap-4">
         <label className="block mb-2">
           Month:
-          <input
-            type="text"
+          <select
             value={month}
             onChange={handleMonthChange}
-            placeholder="Enter month (e.g., January)"
-            className="border rounded p-2 w-full"
-          />
+            className="border rounded p-2 w-full cursor-pointer bg-white hover:border-[#00416A] focus:outline-none focus:ring-2 focus:ring-[#00416A]"
+          >
+            <option value="January">January</option>
+            <option value="February">February</option>
+            <option value="March">March</option>
+            <option value="April">April</option>
+            <option value="May">May</option>
+            <option value="June">June</option>
+            <option value="July">July</option>
+            <option value="August">August</option>
+            <option value="September">September</option>
+            <option value="October">October</option>
+            <option value="November">November</option>
+            <option value="December">December</option>
+          </select>
         </label>
         <label className="block mb-2">
           Year:

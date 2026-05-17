@@ -18,12 +18,11 @@ const UserExtractData = () => {
                 }
             });
             const data = response.data;
-            console.log("Extracted Data:", data);
             const workbook = XLSX.utils.book_new();
-            const worksheet = XLSX.utils.json_to_sheet(data.attendance);
+            const worksheet = XLSX.utils.json_to_sheet(data);
             XLSX.utils.book_append_sheet(workbook, worksheet, data.name);
 
-            XLSX.writeFile(workbook, `${data.name}.xlsx`);
+            XLSX.writeFile(workbook, `${data[0].name}.xlsx`);
         } catch (error) {
             console.error('Error extracting data:', 
                 error.response?.data?.error || error.message

@@ -44,45 +44,41 @@ export const getUserDetails = async (req, res) => {
 };
 
 // PATCH /api/users/update
+// Note: Data added through models (name, email, phone, department, designation, employee_id) cannot be edited
+// Only password can be updated
 export const updateUserDetails = async (req, res) => {
   try {
     const { email } = req.user;
     const { name, phone, oldPassword, newPassword } = req.body;
 
+    // Reject attempts to update name or phone - these are model data and cannot be edited
+    if (name || phone) {
+      return res.status(403).json({ 
+        error: "Name and phone cannot be modified. Data added through models is protected from editing." 
+      });
+    }
+
     const [users] = await pool.query("SELECT password FROM users WHERE email = ?", [email]);
     if (users.length === 0) return res.status(404).json({ error: "User not found" });
 
-    let updateFields = [];
-    let values = [];
-
-    if (name) {
-      updateFields.push("name = ?");
-      values.push(name);
+    // Only allow password updates
+    if (!oldPassword || !newPassword) {
+      return res.status(400).json({ error: "Both old and new passwords are required" });
     }
 
-    if (phone) {
-      updateFields.push("phone = ?");
-      values.push(phone);
-    }
+    const isMatch = await bcrypt.compare(oldPassword, users[0].password);
+    if (!isMatch) return res.status(401).json({ error: "Old password is incorrect" });
 
-    if (oldPassword && newPassword) {
-      const isMatch = await bcrypt.compare(oldPassword, users[0].password);
-      if (!isMatch) return res.status(401).json({ error: "Old password is incorrect" });
-
-      const hashedPassword = await bcrypt.hash(newPassword, 10);
-      updateFields.push("password = ?");
-      values.push(hashedPassword);
-    }
-
-    if (updateFields.length === 0) {
-      return res.status(400).json({ error: "No fields to update" });
-    }
-
-    values.push(email);
-    const [result] = await pool.query(`UPDATE users SET ${updateFields.join(", ")} WHERE email = ?`, values);
+    const hashedPassword = await bcrypt.hash(newPassword, 10);
+    
+    const [result] = await pool.query(
+      "UPDATE users SET password = ? WHERE email = ?", 
+      [hashedPassword, email]
+    );
+    
     if (result.affectedRows === 0) return res.status(500).json({ error: "Update failed" });
 
-    res.json({ message: "User details updated successfully" });
+    res.json({ message: "Password updated successfully" });
   } catch (err) {
     console.error("updateUserDetails error:", err);
     res.status(500).json({ error: "Internal Server Error" });

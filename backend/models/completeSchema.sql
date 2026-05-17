@@ -23,7 +23,7 @@ CREATE TABLE IF NOT EXISTS attendance (
     date DATE NOT NULL,
     check_in_time TIME,
     check_out_time TIME,
-    status VARCHAR(10) NOT NULL CHECK (status IN ('Present', 'Absent', 'Late')),
+    status VARCHAR(20) NOT NULL CHECK (status IN ('Present', 'Absent', 'Late', 'Left Early')),
 
     FOREIGN KEY (employee_id) REFERENCES users(employee_id) ON DELETE CASCADE,
     UNIQUE KEY uniq_attendance (employee_id, date) -- prevent duplicates for same day
@@ -38,6 +38,19 @@ CREATE TABLE IF NOT EXISTS site_meta (
     sync_status ENUM('idle','in_progress','failed') DEFAULT 'idle'
 );
 
+-- Detailed Attendance Sessions Table (for tracking multiple in/out cycles per day)
+CREATE TABLE IF NOT EXISTS detailed_attendance_sessions (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    employee_id VARCHAR(50) NOT NULL,
+    session_date DATE NOT NULL,
+    check_in TIME NOT NULL,
+    check_out TIME NULL,
+    session_duration_minutes INT,  -- NULL until check_out is recorded
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    
+    FOREIGN KEY (employee_id) REFERENCES users(employee_id) ON DELETE CASCADE
+);
 
 -- Users
 CREATE INDEX idx_users_employee_id ON users(employee_id);
@@ -51,3 +64,10 @@ CREATE INDEX idx_attendance_employee_id ON attendance(employee_id);
 CREATE INDEX idx_attendance_date ON attendance(date);
 CREATE INDEX idx_attendance_status ON attendance(status);
 CREATE INDEX idx_attendance_employee_date ON attendance(employee_id, date);
+
+-- Detailed Attendance Sessions Indexes
+CREATE INDEX idx_sessions_employee_id ON detailed_attendance_sessions(employee_id);
+CREATE INDEX idx_sessions_date ON detailed_attendance_sessions(session_date);
+CREATE INDEX idx_sessions_employee_date ON detailed_attendance_sessions(employee_id, session_date);
+CREATE INDEX idx_sessions_open ON detailed_attendance_sessions(employee_id, session_date, check_out);
+CREATE INDEX idx_sessions_composite ON detailed_attendance_sessions(employee_id, session_date, check_in);
