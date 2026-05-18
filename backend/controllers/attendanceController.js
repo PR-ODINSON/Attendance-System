@@ -450,56 +450,22 @@ export const getSessionDetails = async (req, res) => {
       [employeeId, date]
     );
 
-    // Format each inside-session
+    // Format sessions for display
     const formattedSessions = sessions.map((session, index) => ({
       id: session.id,
       sequence: index + 1,
       check_in: session.check_in,
       check_out: session.check_out,
-      duration_minutes: session.session_duration_minutes ?? 0,
-      duration_formatted: session.check_out
-        ? formatDuration(session.session_duration_minutes ?? 0)
-        : "-",
+      duration_minutes: session.session_duration_minutes,
+      duration_formatted: session.check_out ? formatDuration(session.session_duration_minutes) : "-",
       status: session.check_out ? "Completed" : "Active"
     }));
-
-    // Compute out-time gaps between consecutive sessions
-    const outGaps = [];
-    for (let i = 0; i < formattedSessions.length - 1; i++) {
-      const current = formattedSessions[i];
-      const next = formattedSessions[i + 1];
-      if (current.check_out && next.check_in) {
-        const gapMinutes = calculateDurationMinutes(current.check_out, next.check_in);
-        outGaps.push({
-          gap_number: i + 1,
-          after_session: current.sequence,
-          before_session: next.sequence,
-          time_out: current.check_out,
-          time_in: next.check_in,
-          duration_minutes: gapMinutes,
-          duration_formatted: formatDuration(gapMinutes)
-        });
-      }
-    }
-
-    const totalInMinutes = formattedSessions.reduce(
-      (sum, s) => sum + (s.duration_minutes || 0),
-      0
-    );
-    const totalOutMinutes = outGaps.reduce((sum, g) => sum + g.duration_minutes, 0);
 
     res.status(200).json({
       employeeId,
       date,
       total_sessions: formattedSessions.length,
-      times_exited: outGaps.length,
-      times_reentered: outGaps.length,
-      total_in_duration_minutes: totalInMinutes,
-      total_in_duration_formatted: formatDuration(totalInMinutes),
-      total_out_duration_minutes: totalOutMinutes,
-      total_out_duration_formatted: formatDuration(totalOutMinutes),
-      sessions: formattedSessions,
-      out_gaps: outGaps
+      sessions: formattedSessions
     });
 
   } catch (error) {

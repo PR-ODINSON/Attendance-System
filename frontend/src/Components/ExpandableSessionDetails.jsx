@@ -51,14 +51,9 @@ const ExpandableSessionDetails = ({ employeeId, date = null }) => {
             Detailed Sessions
           </h3>
           {sessions && (
-            <>
-              <span className="text-sm bg-[#0064a2] text-white px-3 py-1 rounded-full font-semibold">
-                {sessions.total_sessions} in
-              </span>
-              <span className="text-sm bg-[#FFA726] text-white px-3 py-1 rounded-full font-semibold">
-                {sessions.times_exited} out
-              </span>
-            </>
+            <span className="text-sm bg-[#FFC107] text-[#00416A] px-3 py-1 rounded-full font-semibold">
+              {sessions.total_sessions}
+            </span>
           )}
         </div>
         <div
@@ -115,133 +110,61 @@ const ExpandableSessionDetails = ({ employeeId, date = null }) => {
                   No sessions recorded for {selectedDate}
                 </p>
               ) : (
-                <>
-                  {/* Summary bar */}
-                  <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-5">
-                    <div className="bg-[#EEF6FF] border border-[#0064a2] rounded-lg p-3 text-center">
-                      <p className="text-xs font-semibold text-[#0064a2] uppercase tracking-wide">
-                        Times Entered
-                      </p>
-                      <p className="text-2xl font-bold text-[#00416A] mt-1">
-                        {sessions.total_sessions}
-                      </p>
-                    </div>
-                    <div className="bg-[#F3E8FF] border border-[#7B1FA2] rounded-lg p-3 text-center">
-                      <p className="text-xs font-semibold text-[#7B1FA2] uppercase tracking-wide">
-                        Times Exited
-                      </p>
-                      <p className="text-2xl font-bold text-[#4A148C] mt-1">
-                        {sessions.times_exited}
-                      </p>
-                    </div>
-                    <div className="bg-[#E8F5E9] border border-[#4CAF50] rounded-lg p-3 text-center">
-                      <p className="text-xs font-semibold text-[#2E7D32] uppercase tracking-wide">
-                        Total Inside
-                      </p>
-                      <p className="text-2xl font-bold text-[#2E7D32] mt-1">
-                        {sessions.total_in_duration_formatted}
-                      </p>
-                      <p className="text-xs text-gray-500 mt-0.5">
-                        {sessions.total_in_duration_minutes} min
-                      </p>
-                    </div>
-                    <div className="bg-[#FFF3E0] border border-[#FFA726] rounded-lg p-3 text-center">
-                      <p className="text-xs font-semibold text-[#E65100] uppercase tracking-wide">
-                        Total Outside
-                      </p>
-                      <p className="text-2xl font-bold text-[#E65100] mt-1">
-                        {sessions.total_out_duration_formatted}
-                      </p>
-                      <p className="text-xs text-gray-500 mt-0.5">
-                        {sessions.total_out_duration_minutes} min
-                      </p>
-                    </div>
-                  </div>
-
-                  {/* Timeline table interleaving inside sessions and outside gaps */}
-                  <table className="w-full text-sm">
-                    <thead>
-                      <tr className="bg-[#00416A] text-white">
-                        <th className="px-4 py-3 text-left font-semibold">#</th>
-                        <th className="px-4 py-3 text-left font-semibold">Type</th>
-                        <th className="px-4 py-3 text-left font-semibold">From</th>
-                        <th className="px-4 py-3 text-left font-semibold">To</th>
-                        <th className="px-4 py-3 text-left font-semibold">Duration</th>
-                        <th className="px-4 py-3 text-left font-semibold">Status</th>
+                <table className="w-full text-sm">
+                  <thead>
+                    <tr className="bg-[#00416A] text-white">
+                      <th className="px-4 py-3 text-left font-semibold">
+                        Session #
+                      </th>
+                      <th className="px-4 py-3 text-left font-semibold">
+                        Check-In
+                      </th>
+                      <th className="px-4 py-3 text-left font-semibold">
+                        Check-Out
+                      </th>
+                      <th className="px-4 py-3 text-left font-semibold">
+                        Duration
+                      </th>
+                      <th className="px-4 py-3 text-left font-semibold">
+                        Status
+                      </th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {sessions.sessions.map((session, idx) => (
+                      <tr
+                        key={session.id || idx}
+                        className={`${
+                          idx % 2 === 0 ? "bg-white" : "bg-gray-50"
+                        } border-b border-gray-200 hover:bg-gray-100 transition-colors`}
+                      >
+                        <td className="px-4 py-3 font-semibold text-[#00416A]">
+                          {session.sequence}
+                        </td>
+                        <td className="px-4 py-3 font-mono text-[#0064a2]">
+                          {session.check_in}
+                        </td>
+                        <td className="px-4 py-3 font-mono text-[#0064a2]">
+                          {session.check_out || "-"}
+                        </td>
+                        <td className="px-4 py-3 font-semibold text-[#00416A]">
+                          {session.duration_formatted}
+                        </td>
+                        <td className="px-4 py-3">
+                          <span
+                            className={`px-3 py-1 rounded-full text-xs font-semibold ${
+                              session.status === "Completed"
+                                ? "bg-green-100 text-green-800"
+                                : "bg-yellow-100 text-yellow-800"
+                            }`}
+                          >
+                            {session.status}
+                          </span>
+                        </td>
                       </tr>
-                    </thead>
-                    <tbody>
-                      {sessions.sessions.map((session, idx) => {
-                        const gap = sessions.out_gaps?.find(
-                          (g) => g.after_session === session.sequence
-                        );
-                        return (
-                          <React.Fragment key={session.id || idx}>
-                            {/* Inside session row */}
-                            <tr className="bg-[#EEF6FF] border-b border-blue-100 hover:bg-[#dceeff] transition-colors">
-                              <td className="px-4 py-3 font-bold text-[#00416A]">
-                                {session.sequence}
-                              </td>
-                              <td className="px-4 py-3">
-                                <span className="inline-flex items-center gap-1 px-2 py-1 rounded-full bg-[#0064a2] text-white text-xs font-semibold">
-                                  ↓ Inside
-                                </span>
-                              </td>
-                              <td className="px-4 py-3 font-mono text-[#0064a2]">
-                                {session.check_in}
-                              </td>
-                              <td className="px-4 py-3 font-mono text-[#0064a2]">
-                                {session.check_out || "—"}
-                              </td>
-                              <td className="px-4 py-3 font-semibold text-[#00416A]">
-                                {session.duration_formatted}
-                              </td>
-                              <td className="px-4 py-3">
-                                <span
-                                  className={`px-3 py-1 rounded-full text-xs font-semibold ${
-                                    session.status === "Completed"
-                                      ? "bg-green-100 text-green-800"
-                                      : "bg-yellow-100 text-yellow-800"
-                                  }`}
-                                >
-                                  {session.status}
-                                </span>
-                              </td>
-                            </tr>
-
-                            {/* Outside gap row (if this session has a gap after it) */}
-                            {gap && (
-                              <tr className="bg-[#FFF8EC] border-b border-orange-100 hover:bg-[#ffe9c0] transition-colors">
-                                <td className="px-4 py-3 text-gray-400 text-xs italic pl-7">
-                                  gap
-                                </td>
-                                <td className="px-4 py-3">
-                                  <span className="inline-flex items-center gap-1 px-2 py-1 rounded-full bg-[#FFA726] text-white text-xs font-semibold">
-                                    ↑ Outside
-                                  </span>
-                                </td>
-                                <td className="px-4 py-3 font-mono text-[#E65100]">
-                                  {gap.time_out}
-                                </td>
-                                <td className="px-4 py-3 font-mono text-[#E65100]">
-                                  {gap.time_in}
-                                </td>
-                                <td className="px-4 py-3 font-semibold text-[#E65100]">
-                                  {gap.duration_formatted}
-                                </td>
-                                <td className="px-4 py-3">
-                                  <span className="px-3 py-1 rounded-full text-xs font-semibold bg-orange-100 text-orange-800">
-                                    Returned
-                                  </span>
-                                </td>
-                              </tr>
-                            )}
-                          </React.Fragment>
-                        );
-                      })}
-                    </tbody>
-                  </table>
-                </>
+                    ))}
+                  </tbody>
+                </table>
               )}
             </div>
           )}
