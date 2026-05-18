@@ -73,47 +73,49 @@ const SessionMetrics = ({ employeeId }) => {
       )}
 
       {!loading && (
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          <div className="bg-gradient-to-br from-[#0064a2] to-[#00416A] text-white p-6 rounded-lg shadow-lg hover:shadow-xl transition-shadow">
-            <div>
-              <p className="text-sm font-semibold opacity-90">
-                Total Sessions
-              </p>
-              <p className="text-4xl font-bold mt-2">
-                {metrics.total_cycles}
-              </p>
-              <p className="text-xs mt-2 opacity-75">
-                {metrics.completed_sessions} completed, {metrics.active_sessions} active
-              </p>
-            </div>
+        <div className="grid grid-cols-2 gap-4">
+          {/* Times Entered */}
+          <div className="bg-gradient-to-br from-[#0064a2] to-[#00416A] text-white p-5 rounded-lg shadow-lg hover:shadow-xl transition-shadow">
+            <p className="text-sm font-semibold opacity-90">Times Entered</p>
+            <p className="text-4xl font-bold mt-2">{metrics.total_cycles}</p>
+            <p className="text-xs mt-2 opacity-75">
+              {metrics.active_sessions > 0
+                ? `${metrics.active_sessions} currently inside`
+                : "No active session"}
+            </p>
           </div>
 
-          <div className="bg-gradient-to-br from-[#4CAF50] to-[#2E7D32] text-white p-6 rounded-lg shadow-lg hover:shadow-xl transition-shadow">
-            <div>
-              <p className="text-sm font-semibold opacity-90">
-                Avg Session Duration
-              </p>
-              <p className="text-4xl font-bold mt-2">
-                {metrics.formatted.avg_session_duration}
-              </p>
-              <p className="text-xs mt-2 opacity-75">
-                {metrics.avg_session_duration_minutes} minutes
-              </p>
-            </div>
+          {/* Times Exited */}
+          <div className="bg-gradient-to-br from-[#7B1FA2] to-[#4A148C] text-white p-5 rounded-lg shadow-lg hover:shadow-xl transition-shadow">
+            <p className="text-sm font-semibold opacity-90">Times Exited</p>
+            <p className="text-4xl font-bold mt-2">{metrics.completed_sessions}</p>
+            <p className="text-xs mt-2 opacity-75">
+              {metrics.total_cycles - metrics.completed_sessions > 0
+                ? `${metrics.total_cycles - metrics.completed_sessions} session(s) still open`
+                : "All sessions closed"}
+            </p>
           </div>
 
-          <div className="bg-gradient-to-br from-[#FFA726] to-[#E65100] text-white p-6 rounded-lg shadow-lg hover:shadow-xl transition-shadow">
-            <div>
-              <p className="text-sm font-semibold opacity-90">
-                Total Time Inside
-              </p>
-              <p className="text-4xl font-bold mt-2">
-                {metrics.formatted.total_time_inside}
-              </p>
-              <p className="text-xs mt-2 opacity-75">
-                {metrics.total_time_inside_minutes} minutes
-              </p>
-            </div>
+          {/* Total Time Inside */}
+          <div className="bg-gradient-to-br from-[#4CAF50] to-[#2E7D32] text-white p-5 rounded-lg shadow-lg hover:shadow-xl transition-shadow">
+            <p className="text-sm font-semibold opacity-90">Total Time Inside</p>
+            <p className="text-4xl font-bold mt-2">
+              {metrics.formatted.total_time_inside}
+            </p>
+            <p className="text-xs mt-2 opacity-75">
+              {metrics.total_time_inside_minutes} min total inside
+            </p>
+          </div>
+
+          {/* Total Time Outside */}
+          <div className="bg-gradient-to-br from-[#FFA726] to-[#E65100] text-white p-5 rounded-lg shadow-lg hover:shadow-xl transition-shadow">
+            <p className="text-sm font-semibold opacity-90">Total Time Outside</p>
+            <p className="text-4xl font-bold mt-2">
+              {metrics.formatted.total_time_outside}
+            </p>
+            <p className="text-xs mt-2 opacity-75">
+              {metrics.total_time_outside_minutes} min total outside
+            </p>
           </div>
         </div>
       )}
