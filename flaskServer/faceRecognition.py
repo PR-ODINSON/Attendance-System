@@ -275,7 +275,7 @@ class CameraWorker(threading.Thread):
         self.cap = None
 
     def run(self):
-        print(f"[{self.window_name}] Starting…")
+        print(f"[{self.window_name}] Starting...")
         self.open_stream()
         if self.cap is None:
             return

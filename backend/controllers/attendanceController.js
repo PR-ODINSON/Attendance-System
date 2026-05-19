@@ -37,15 +37,25 @@ export const markAttendance = async (req, res) => {
       const status = determineAttendanceStatus(currentTime);
 
       if (!existingAttendance) {
-        await pool.query(`
+        await pool.query(
+          `
           INSERT INTO attendance (employee_id, date, check_in_time, check_out_time, status)
           VALUES (?, ?, ?, NULL, ?)`,
-          [employeeId, currentDate, currentTime, status]
+          [employeeId, currentDate, currentTime, status],
         );
       } else if (!existingAttendance.check_in_time) {
         await pool.query(
           "UPDATE attendance SET check_in_time = ?, status = ? WHERE employee_id = ? AND date = ?",
-          [currentTime, status, employeeId, currentDate]
+          [currentTime, status, employeeId, currentDate],
+        );
+      } else if (existingAttendance.check_out_time) {
+        // Already has check_in and check_out, so this is a new session after checkout
+        // Reset check_out to NULL to reflect current active session
+        // Recheck the status and update if necessary
+        const new_status = determineAttendanceStatus(existingAttendance.check_in_time);
+        await pool.query(
+          "UPDATE attendance SET check_out_time = NULL, status = ? WHERE employee_id = ? AND date = ?",
+          [new_status, employeeId, currentDate],
         );
       }
 

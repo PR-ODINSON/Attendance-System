@@ -41,13 +41,13 @@ const ExpandableSessionDetails = ({ employeeId, date = null }) => {
   };
 
   return (
-    <div className="w-full px-12 py-6 bg-white rounded-xl shadow-md mt-6">
+    <div className="w-full px-12 py-6 bg-blue-50 rounded-xl shadow-md mt-6">
       <button
         onClick={handleToggleExpand}
-        className="w-full flex items-center justify-between py-3 px-4 hover:bg-gray-50 rounded-lg transition-colors"
+        className="w-full flex items-center justify-between py-3 px-4 rounded-lg transition-colors"
       >
         <div className="flex items-center gap-3">
-          <h3 className="text-lg font-bold text-[#00416A] montserrat">
+          <h3 className="text-xl font-bold text-[#00416A] montserrat">
             Detailed Sessions
           </h3>
           {sessions && (
@@ -56,13 +56,15 @@ const ExpandableSessionDetails = ({ employeeId, date = null }) => {
             </span>
           )}
         </div>
-        <div
-          className={`text-2xl transition-transform ${
+        <svg
+          className={`w-5 h-5 text-[#00416A] transition-transform duration-300 ${
             isExpanded ? "rotate-180" : ""
           }`}
+          viewBox="0 0 24 24"
+          fill="currentColor"
         >
-          v
-        </div>
+          <polygon points="12,18 4,8 20,8" />
+        </svg>
       </button>
 
       {isExpanded && (
