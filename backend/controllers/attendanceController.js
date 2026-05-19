@@ -324,8 +324,8 @@ const getDateRange = (period) => {
 
   switch (period) {
     case "today":
-      startDate = new Date(today);
-      endDate = new Date(today);
+      startDate = todayDate;  // Already in correct IST format
+      endDate = todayDate;
       break;
     case "month":
       startDate = new Date(today.getFullYear(), today.getMonth(), 1);
@@ -340,8 +340,7 @@ const getDateRange = (period) => {
       endDate = new Date(today);
   }
 
-  const formatDate = (d) => d.toISOString().split("T")[0];
-  return { startDate: formatDate(startDate), endDate: formatDate(endDate) };
+  return { startDate: startDate, endDate: endDate };
 };
 
 // Helper function to convert minutes to HH:MM format
