@@ -361,6 +361,49 @@ const formatDuration = (minutes) => {
   return `${String(hours).padStart(2, "0")}:${String(mins).padStart(2, "0")}`;
 };
 
+const formatDateValue = (value) => {
+  if (!value) return "";
+  if (typeof value === "string") return value.split("T")[0];
+  const year = value.getFullYear();
+  const month = String(value.getMonth() + 1).padStart(2, "0");
+  const day = String(value.getDate()).padStart(2, "0");
+  return `${year}-${month}-${day}`;
+};
+
+const getSessionDownloadDateRange = (period) => {
+  const todayDate = getCurrentDateTime().currentDate;
+  const today = new Date(`${todayDate}T00:00:00`);
+  let startDate;
+  let endDate;
+
+  switch (period) {
+    case "week": {
+      const dayOfWeek = today.getDay();
+      const weekStart = new Date(today);
+      weekStart.setDate(today.getDate() - dayOfWeek);
+      const weekEnd = new Date(weekStart);
+      weekEnd.setDate(weekStart.getDate() + 6);
+      startDate = formatDateValue(weekStart);
+      endDate = formatDateValue(weekEnd);
+      break;
+    }
+    case "month":
+      startDate = formatDateValue(new Date(today.getFullYear(), today.getMonth(), 1));
+      endDate = formatDateValue(new Date(today.getFullYear(), today.getMonth() + 1, 0));
+      break;
+    case "alltime":
+      startDate = "2000-01-01";
+      endDate = todayDate;
+      break;
+    case "today":
+    default:
+      startDate = todayDate;
+      endDate = todayDate;
+  }
+
+  return { startDate, endDate };
+};
+
 // Get session statistics for a given employee and period
 export const getSessionStatistics = async (req, res) => {
   try {
@@ -459,16 +502,32 @@ export const getSessionDetails = async (req, res) => {
       [employeeId, date]
     );
 
-    // Format sessions for display
-    const formattedSessions = sessions.map((session, index) => ({
-      id: session.id,
-      sequence: index + 1,
-      check_in: session.check_in,
-      check_out: session.check_out,
-      duration_minutes: session.session_duration_minutes,
-      duration_formatted: session.check_out ? formatDuration(session.session_duration_minutes) : "-",
-      status: session.check_out ? "Completed" : "Active"
-    }));
+    // Format sessions for display with out-time calculation
+    const formattedSessions = sessions.map((session, index) => {
+      let outTimeMinutes = null;
+      let outTimeFormatted = "-";
+
+      // Calculate out_time if this is not the last session
+      if (index < sessions.length - 1) {
+        const nextSession = sessions[index + 1];
+        if (session.check_out && nextSession.check_in) {
+          outTimeMinutes = calculateDurationMinutes(session.check_out, nextSession.check_in);
+          outTimeFormatted = formatDuration(outTimeMinutes);
+        }
+      }
+
+      return {
+        id: session.id,
+        sequence: index + 1,
+        check_in: session.check_in,
+        check_out: session.check_out,
+        duration_minutes: session.session_duration_minutes,
+        duration_formatted: session.check_out ? formatDuration(session.session_duration_minutes) : "-",
+        out_time_minutes: outTimeMinutes,
+        out_time_formatted: outTimeFormatted,
+        status: session.check_out ? "Completed" : "Active"
+      };
+    });
 
     res.status(200).json({
       employeeId,
@@ -479,6 +538,80 @@ export const getSessionDetails = async (req, res) => {
 
   } catch (error) {
     console.error("getSessionDetails error:", error);
+    res.status(500).json({ error: "Internal Server Error" });
+  }
+};
+
+// Get detailed session entries for CSV/download over a selected period
+export const getSessionDownloadData = async (req, res) => {
+  try {
+    const { employeeId } = req.params;
+    const { period = "today" } = req.query;
+
+    if (!employeeId) {
+      return res.status(400).json({ error: "employeeId is required" });
+    }
+
+    const { startDate, endDate } = getSessionDownloadDateRange(period);
+    const [[user]] = await pool.query(
+      "SELECT name FROM users WHERE employee_id = ?",
+      [employeeId]
+    );
+
+    const [sessions] = await pool.query(
+      `SELECT id, session_date, check_in, check_out, session_duration_minutes
+       FROM detailed_attendance_sessions
+       WHERE employee_id = ? AND session_date >= ? AND session_date <= ?
+       ORDER BY session_date ASC, check_in ASC, id ASC`,
+      [employeeId, startDate, endDate]
+    );
+
+    const sequenceByDate = {};
+    const formattedSessions = sessions.map((session, index) => {
+      const sessionDate = formatDateValue(session.session_date);
+      const nextSession = sessions[index + 1];
+      const nextSessionDate = nextSession ? formatDateValue(nextSession.session_date) : null;
+      let outTimeMinutes = null;
+      let outTimeFormatted = "-";
+
+      sequenceByDate[sessionDate] = (sequenceByDate[sessionDate] || 0) + 1;
+
+      if (
+        nextSession &&
+        sessionDate === nextSessionDate &&
+        session.check_out &&
+        nextSession.check_in
+      ) {
+        outTimeMinutes = calculateDurationMinutes(session.check_out, nextSession.check_in);
+        outTimeFormatted = formatDuration(outTimeMinutes);
+      }
+
+      return {
+        id: session.id,
+        date: sessionDate,
+        sequence: sequenceByDate[sessionDate],
+        check_in: session.check_in,
+        check_out: session.check_out,
+        duration_minutes: session.session_duration_minutes,
+        duration_formatted: session.check_out ? formatDuration(session.session_duration_minutes) : "-",
+        out_time_minutes: outTimeMinutes,
+        out_time_formatted: outTimeFormatted,
+        status: session.check_out ? "Completed" : "Active"
+      };
+    });
+
+    res.status(200).json({
+      employeeId,
+      employeeName: user?.name || "",
+      period,
+      startDate,
+      endDate,
+      total_sessions: formattedSessions.length,
+      sessions: formattedSessions
+    });
+
+  } catch (error) {
+    console.error("getSessionDownloadData error:", error);
     res.status(500).json({ error: "Internal Server Error" });
   }
 };

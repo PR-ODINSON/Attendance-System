@@ -50,33 +50,35 @@ const UserCalendar = () => {
   }, [employeeId]);
 
   return (
-    <Calendar
-      onChange={setDate}
-      value={date}
-      tileClassName={({ date }) => {
-        const formattedDate = date.toLocaleDateString("en-GB", {
-          timeZone: "Asia/Kolkata",
-        });
-        const attendanceDetails = attendance[formattedDate];
+    <div className="calendar-wrapper">
+      <Calendar
+        onChange={setDate}
+        value={date}
+        tileClassName={({ date }) => {
+          const formattedDate = date.toLocaleDateString("en-GB", {
+            timeZone: "Asia/Kolkata",
+          });
+          const attendanceDetails = attendance[formattedDate];
 
-        return attendanceDetails
-          ? `status-${attendanceDetails.status.toLowerCase()}`
-          : "";
-      }}
-      tileContent={({ date }) => {
-        const formattedDate = date.toLocaleDateString("en-GB", {
-          timeZone: "Asia/Kolkata",
-        });
-        const attendanceDetails = attendance[formattedDate];
+          return attendanceDetails
+            ? `status-${attendanceDetails.status.toLowerCase()}`
+            : "";
+        }}
+        tileContent={({ date }) => {
+          const formattedDate = date.toLocaleDateString("en-GB", {
+            timeZone: "Asia/Kolkata",
+          });
+          const attendanceDetails = attendance[formattedDate];
 
-        return attendanceDetails ? (
-          <div
-            className={`attendance-dot dot-${attendanceDetails.status.toLowerCase()}`}
-            title={`Status: ${attendanceDetails.status}\nCheck In Time: ${attendanceDetails.checkInTime}\nCheck Out Time: ${attendanceDetails.checkOutTime}`}
-          ></div>
-        ) : null;
-      }}
-    />
+          return attendanceDetails ? (
+            <div
+              className={`attendance-dot dot-${attendanceDetails.status.toLowerCase()}`}
+              title={`Status: ${attendanceDetails.status}\nCheck In Time: ${attendanceDetails.checkInTime}\nCheck Out Time: ${attendanceDetails.checkOutTime}`}
+            ></div>
+          ) : null;
+        }}
+      />
+    </div>
   );
 };
 

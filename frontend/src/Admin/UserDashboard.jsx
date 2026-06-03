@@ -17,17 +17,21 @@ const UserDashboard = () => {
         <div className='w-5/6 min-h-screen flex flex-col overflow-y-auto'>
           <NavBar />
           <div className='w-full flex flex-col justify-start items-start gap-10 px-12'>
-            <div className='w-full flex gap-6'>
-              <div className='w-1/2 rounded-lg'>
+            <div className='w-full flex flex-col lg:flex-row gap-8'>
+              <div className='flex-1 rounded-lg'>
                 <UserWelcome employeeId={employeeId} />
                 {employeeId && (
                   <SessionMetrics employeeId={employeeId} />
                 )}
                 <UserDataTile employeeId={employeeId} />
-                <UserExtractData employeeId={employeeId} />
               </div>
-              <UserCalendar employeeId={employeeId} />
+              <div className='w-full lg:w-auto lg:max-w-sm'>
+                <UserCalendar employeeId={employeeId} />
+              </div>
             </div>
+            {employeeId && (
+              <UserExtractData employeeId={employeeId} />
+            )}
             {employeeId && (
               <ExpandableSessionDetails employeeId={employeeId} />
             )}

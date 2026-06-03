@@ -73,45 +73,59 @@ const SessionMetrics = ({ employeeId }) => {
       )}
 
       {!loading && (
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          <div className="bg-gradient-to-br from-[#0064a2] to-[#00416A] text-white p-6 rounded-lg shadow-lg hover:shadow-xl transition-shadow">
-            <div>
-              <p className="text-sm font-semibold opacity-90">
+        <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
+          <div className="min-h-[150px] bg-gradient-to-br from-[#0064a2] to-[#00416A] text-white p-5 rounded-lg shadow-md hover:shadow-lg transition-shadow">
+            <div className="h-full flex flex-col justify-between">
+              <p className="text-xs font-semibold uppercase tracking-wide opacity-90">
                 Total Sessions
               </p>
-              <p className="text-4xl font-bold mt-2">
+              <p className="text-3xl font-bold mt-3 leading-none">
                 {metrics.total_cycles}
               </p>
-              <p className="text-xs mt-2 opacity-75">
+              <p className="text-xs mt-3 opacity-75 leading-snug">
                 {metrics.completed_sessions} completed, {metrics.active_sessions} active
               </p>
             </div>
           </div>
 
-          <div className="bg-gradient-to-br from-[#4CAF50] to-[#2E7D32] text-white p-6 rounded-lg shadow-lg hover:shadow-xl transition-shadow">
-            <div>
-              <p className="text-sm font-semibold opacity-90">
+          <div className="min-h-[150px] bg-gradient-to-br from-[#4CAF50] to-[#2E7D32] text-white p-5 rounded-lg shadow-md hover:shadow-lg transition-shadow">
+            <div className="h-full flex flex-col justify-between">
+              <p className="text-xs font-semibold uppercase tracking-wide opacity-90">
                 Avg Session Duration
               </p>
-              <p className="text-4xl font-bold mt-2">
+              <p className="text-3xl font-bold mt-3 leading-none">
                 {metrics.formatted.avg_session_duration}
               </p>
-              <p className="text-xs mt-2 opacity-75">
+              <p className="text-xs mt-3 opacity-75 leading-snug">
                 {metrics.avg_session_duration_minutes} minutes
               </p>
             </div>
           </div>
 
-          <div className="bg-gradient-to-br from-[#FFA726] to-[#E65100] text-white p-6 rounded-lg shadow-lg hover:shadow-xl transition-shadow">
-            <div>
-              <p className="text-sm font-semibold opacity-90">
+          <div className="min-h-[150px] bg-gradient-to-br from-[#FFA726] to-[#E65100] text-white p-5 rounded-lg shadow-md hover:shadow-lg transition-shadow">
+            <div className="h-full flex flex-col justify-between">
+              <p className="text-xs font-semibold uppercase tracking-wide opacity-90">
                 Total Time Inside
               </p>
-              <p className="text-4xl font-bold mt-2">
+              <p className="text-3xl font-bold mt-3 leading-none">
                 {metrics.formatted.total_time_inside}
               </p>
-              <p className="text-xs mt-2 opacity-75">
+              <p className="text-xs mt-3 opacity-75 leading-snug">
                 {metrics.total_time_inside_minutes} minutes
+              </p>
+            </div>
+          </div>
+
+          <div className="min-h-[150px] bg-gradient-to-br from-[#EF4444] to-[#991B1B] text-white p-5 rounded-lg shadow-md hover:shadow-lg transition-shadow">
+            <div className="h-full flex flex-col justify-between">
+              <p className="text-xs font-semibold uppercase tracking-wide opacity-90">
+                Total Time Outside
+              </p>
+              <p className="text-3xl font-bold mt-3 leading-none">
+                {metrics.formatted.total_time_outside}
+              </p>
+              <p className="text-xs mt-3 opacity-75 leading-snug">
+                {metrics.total_time_outside_minutes} minutes
               </p>
             </div>
           </div>

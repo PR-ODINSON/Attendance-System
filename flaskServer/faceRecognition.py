@@ -402,8 +402,8 @@ if __name__ == "__main__":
     # Configure camera streams: (source, camera_type)
     # camera_type: "check_in" (entrance), "check_out" (exit), or "auto" (time-based)
     sources = [
-        ("rtsp://admin:InSolare@2025@192.168.1.3:554/stream1", "check_in"), # Stream 1: Entry
-        ("rtsp://admin:InSolare@2025@192.168.1.2:554/stream1", "check_out") # Stream 2: Exit
+        ("0", "check_in"), # Stream 1: Entry
+        # ("rtsp://admin:InSolare@2025@192.168.1.2:554/stream1", "check_out") # Stream 2: Exit
     ]
 
     marked_dict = {}  # (name, camera_type) -> last timestamp

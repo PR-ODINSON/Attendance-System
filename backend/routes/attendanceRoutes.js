@@ -8,7 +8,8 @@ import {
     getBarAttendance,
     markAttendance,
     getSessionStatistics,
-    getSessionDetails
+    getSessionDetails,
+    getSessionDownloadData
 } from "../controllers/attendanceController.js";
 import { authenticateToken } from "../middleware/authToken.js";
 
@@ -25,5 +26,6 @@ attendanceRoutes.post("/mark-attendance", markAttendance);  // No auth required 
 // New endpoints for session statistics and details
 attendanceRoutes.get("/session-statistics", authenticateToken, getSessionStatistics);
 attendanceRoutes.get("/session-details/:employeeId", authenticateToken, getSessionDetails);
+attendanceRoutes.get("/session-download/:employeeId", authenticateToken, getSessionDownloadData);
 
 export default attendanceRoutes;

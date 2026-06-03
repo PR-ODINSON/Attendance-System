@@ -33,14 +33,20 @@ const UserExtractData = () => {
     };
 
     return (
-        <div className="p-4">
-            <button
-                onClick={handleExtractData}
-                className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-[#0064a2] hover:bg-[#00416A] focus:outline-none cursor-pointer"
-                disabled={loading}
-            >
-                {loading ? "Extracting..." : "Extract Data"}
-            </button>
+        <div className="w-full bg-white p-6 rounded-xl shadow-md mt-6">
+            <div className="flex items-center justify-between">
+                <h3 className="text-lg font-bold text-[#00416A] montserrat">Export Attendance Data</h3>
+                <button
+                    onClick={handleExtractData}
+                    className="px-6 py-2 bg-[#10B981] text-white rounded-lg hover:bg-[#059669] transition-colors font-semibold flex items-center gap-2"
+                    disabled={loading}
+                >
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                    </svg>
+                    {loading ? "Exporting..." : "Export as Excel"}
+                </button>
+            </div>
         </div>
     );
 };
